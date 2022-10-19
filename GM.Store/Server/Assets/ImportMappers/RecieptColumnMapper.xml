@@ -1,0 +1,11 @@
+﻿<Root>
+	<SLNO>Sl.No</SLNO>
+	<ReceiptNo>Receipt No</ReceiptNo>
+	<ReceiptDate>Receipt Date</ReceiptDate>
+	<CustomerName>Customer Name</CustomerName>
+	<Telephone>Telephone</Telephone>
+	<Brand>Brand</Brand>
+	<Model>Model</Model>
+	<Complaint>Complaint</Complaint>
+	<DeliveryDate>Delivery Date</DeliveryDate>
+</Root>

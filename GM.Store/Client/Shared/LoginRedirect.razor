@@ -1,0 +1,52 @@
+﻿@using System.Web
+@inject ILocalStorageService localStorage;
+@if (isLoaded)
+{
+    @ChildContent
+}
+else
+{
+    <Loading></Loading>
+}
+@code {
+    bool isLoaded;
+    [Inject]
+    public NavigationManager MyNavigationManager { get; set; }
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+    public string UserName;
+    public string relativeUrl;
+    protected override async Task OnInitializedAsync()
+    {
+        relativeUrl = MyNavigationManager.ToBaseRelativePath(MyNavigationManager.Uri);
+
+        var authstate = await AuthState.GetAuthenticationStateAsync();
+        var user = authstate.User;
+        UserName = user.Identity.Name;
+        if (UserName == null && (relativeUrl == "supplier" || relativeUrl == "pos" || relativeUrl == "chef"))
+        {
+            MyNavigationManager.NavigateTo($"/{relativeUrl}/login", forceLoad: true);
+        }
+        //relativeUrl = relativeUrl.Split('/')[0];
+        var roleClaim = user.Claims.FirstOrDefault(a => a.Type == "Roles");
+        var Roles = (roleClaim == null || roleClaim.Value == "") ? "user" : roleClaim.Value;
+        var userRoles = Roles.ToLower().Split(',').ToArray();
+        var currentPortal = this.BusinessService.CurrentPortal;
+        switch (currentPortal)
+        {
+            case "pos":
+                if (userRoles.Contains("supplier") && userRoles.Contains("user") && userRoles.Contains("chef") && !relativeUrl.Contains("login"))
+                {
+                    if (UserName != null)
+                    {
+                        await this.localStorage.SetItemAsync($"authToken-{currentPortal}", this.BusinessService.StoreDetails.AuthToken);
+                    }
+                    MyNavigationManager.NavigateTo($"/pos/login", forceLoad: true);
+                }
+                break;
+            default:
+                break;
+        }
+        isLoaded = true;
+    }
+}

@@ -1,0 +1,283 @@
+﻿<div id="printable-form" style="visibility: hidden;">
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <link type="text/css" media="print" />
+        <style>
+            .invoice-box.for-print {
+                max-width: 400px !important;
+                margin: auto;
+                padding: 16px;
+                font-size: 16px;
+                line-height: 24px;
+                color: #555;
+                background: #fff;
+            }
+
+            .hd-one {
+                width: 200px;
+            }
+
+            hr {
+                border-top: 1px dashed #a1a1a1;
+            }
+
+            .order-history-pop table tr {
+                border: none !important;
+            }
+
+            .hd-two {
+                text-align: left !important;
+            }
+
+            .res-name {
+                font-weight: 600;
+                padding-bottom: 0px !important;
+                text-align: center;
+            }
+
+            .pb-0 {
+                padding-bottom: 0px !important;
+            }
+
+            .text-center {
+                text-align: center;
+            }
+
+            .invoice-box table {
+                width: 100%;
+                line-height: inherit;
+                text-align: left;
+            }
+
+                .invoice-box table td {
+                    padding: 0px;
+                    vertical-align: top;
+                    font-size: 14px;
+                }
+
+                .invoice-box table tr td:nth-child(2) {
+                    text-align: right;
+                }
+
+                .invoice-box table tr.top table td {
+                    padding-bottom: 20px;
+                }
+
+                    .invoice-box table tr.top table td.title {
+                        font-size: 45px;
+                        line-height: 45px;
+                        color: #333;
+                    }
+
+                .invoice-box table tr.information table td {
+                    padding-bottom: 40px;
+                }
+
+                .invoice-box table tr.heading td {
+                    background: #eee;
+                    border-bottom: 1px dashed #a1a1a1;
+                    border-top: 1px dashed #a1a1a1;
+                    font-weight: bold;
+                }
+
+                .invoice-box table tr.details td {
+                    padding-bottom: 20px;
+                }
+
+            .total-bill td {
+                border-bottom: 1px dashed #a1a1a1;
+            }
+
+            .invoice-box table tr.item.last td {
+                border-bottom: none;
+            }
+
+            .invoice-box item td span {
+                display: block;
+            }
+
+            .invoice-box table tr.total td:nth-child(2) {
+                border-top: 2px dashed #a1a1a1;
+                font-weight: bold;
+            }
+
+            .subtotal-billview {
+                font-weight: 700;
+            }
+
+            .thanking {
+                margin-bottom: 0px;
+            }
+
+            .invoice-box.rtl {
+                direction: rtl;
+            }
+
+                .invoice-box.rtl table {
+                    text-align: right;
+                }
+
+                    .invoice-box.rtl table tr td:nth-child(2) {
+                        text-align: left;
+                    }
+
+            .border-tr-none tr {
+                border-bottom: none !important;
+            }
+        </style>
+    </head>
+    <body>
+        @if (DayEndReportModel != null)
+        {
+            <div class="modal fade fixed top-0 left-0 hidden w-full h-full outline-none overflow-x-hidden overflow-y-auto show order-history-pop"
+             tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true" style="display: block; padding-left: 0px;">
+                <div class="invoice-box reports-invoice-wrap for-print">
+                    <table cellpadding="0" cellspacing="0" class="border-tr-none">
+                        <tr class="top">
+                            <td colspan="2">
+                                <table>
+                                    <tr>
+                                        <td class="res-name pt-0">@businessModel.BusinessName</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-center pt-0 pb-0">@businessModel.Address.FirstOrDefault().Address.Split(',')[0]</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-center pt-0 pb-0">@businessModel.Address.FirstOrDefault().Address.Substring(@businessModel.Address.FirstOrDefault().Address.Split(",")[0].Length)</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-center pt-0 pb-0">@businessModel.Address.FirstOrDefault().AdditionalInfo</td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+                    <table cellpadding="0" cellspacing="0" class="border-tr-none">
+                        <tr class="heading">
+                            <td colspan="5" class="text-center" style="border-top:1px dashed #ddd;">DETAILED DAY END REPORT</td>
+                        </tr>
+                        <tr class="details">
+                            <td class="pb-0">Day Opening Date :</td>
+
+                            <td class="pb-0">
+                                @DateTime.Now.ToString("dd/MM/yyyy")
+                                @*<span>@DateTime.Now.ToString("hh:mm tt")</span>*@
+                            </td>
+                        </tr>
+                        <tr class="heading">
+                            <td colspan="5" class="text-center">SALES DETAILS</td>
+                        </tr>
+
+                        <tr class="details">
+                            <td class="pb-0">Cash Sale :</td>
+
+                            <td class="pb-0">@DayEndReportModel.CashSale</td>
+                        </tr>
+                        <tr class="details">
+                            <td class="pb-0">Credit Receipt :</td>
+
+                            <td class="pb-0">
+                                @DayEndReportModel.CreditSale
+                            </td>
+                        </tr>
+                        <tr class="details">
+                            <td class="pb-0">Credit Card Sale :</td>
+
+                            <td class="pb-0">@DayEndReportModel.CardSale</td>
+                        </tr>
+                        <tr class="item subtotal-billview">
+                            <td class="hd-two">Net Sale</td>
+                            <td>@DayEndReportModel.TotalSale</td>
+                        </tr>
+                        <tr class="heading">
+                            <td colspan="5" class="text-center">CASH DETAILS</td>
+                        </tr>
+                        <tr class="details">
+                            <td class="pb-0">Cash Sale (+):</td>
+
+                            <td class="pb-0">@DayEndReportModel.CashSale</td>
+                        </tr>
+                        <tr class="details">
+                            <td class="pb-0">Credit Receipt (+):</td>
+
+                            <td class="pb-0">
+                                0
+                            </td>
+                        </tr>
+                        <tr class="details">
+                            <td class="pb-0">Cash Payments (-):</td>
+
+                            <td class="pb-0">0</td>
+                        </tr>
+                        <tr class="item subtotal-billview">
+                            <td class="hd-two">Net Cash</td>
+                            <td>@DayEndReportModel.CashSale</td>
+                        </tr>
+                        <tr class="heading">
+                            <td colspan="5" class="text-center">CARD DETAILS</td>
+                        </tr>
+                        <tr class="details">
+                            <td class="pb-0">Credit Card Sale :</td>
+
+                            <td class="pb-0">
+                                @DayEndReportModel.CardSale
+                            </td>
+                        </tr>
+                        @* <tr class="details">
+                    <td class="pb-0">Crdt Stlmnt-Card:</td>
+
+                    <td class="pb-0">0.00</td>
+                    </tr>*@
+
+                        <tr class="item subtotal-billview">
+                            <td class="hd-two">Net Credit Card:</td>
+                            <td>@DayEndReportModel.CardSale</td>
+                        </tr>
+                    </table>
+                    <hr>
+                    <table cellpadding="0" cellspacing="0">
+
+                        <tr class="item subtotal-billview">
+                            <td class="hd-two">All Counter Total Sale :</td>
+                            <td>@DayEndReportModel.TotalSale</td>
+                        </tr>
+                        <tr class="item subtotal-billview">
+                            <td class="hd-two">All Counter Total Cash :</td>
+                            <td>@DayEndReportModel.CashSale</td>
+                        </tr>
+                        <tr class="item subtotal-billview">
+                            <td class="hd-two">All Counter Total Card :</td>
+                            <td>@DayEndReportModel.CardSale</td>
+                        </tr>
+                    </table>
+                    <p class="text-center pb-0 thanking">Thank you, Have a nice day</p>
+                </div>
+            </div>
+        }
+    </body>
+</html>
+</div>
+
+@code {
+
+    [Parameter]
+    public DayEndReportModel DayEndReportModel { get; set; }
+    public BusinessModel businessModel { get; set; }
+    [Parameter]
+    public EventCallback<bool> OnorderSummaryClose { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        businessModel = BusinessService.StoreDetails;
+    }
+    public async Task OnloadAsync(DayEndReportModel model)
+    {
+        DayEndReportModel = model;
+        StateHasChanged();
+        //await this.JS.InvokeVoidAsync("printFunction");
+        await PrintingService.Print("printable-form", PrintType.Html);
+
+
+    }
+}

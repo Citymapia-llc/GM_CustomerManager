@@ -1,0 +1,318 @@
+﻿@using GM.Store.Client.Enums
+@inherits ShoppingCart
+@if (cartItems != null && cartItems.Succeeded && cartItems.Model != null && cartItems.Model.Items != null)
+{
+    <div class="cart-items-wrap my-3">
+        <h4>Cart<span>@cartItems.Model?.OrderSummary?.Count item</span></h4>
+        @*<a href="Javascript:void(0)" class="btn btn-third my-auto">Cancel Order</a>*@
+    </div>
+    <div class="mb-3">
+        @if (cartItems.Model.Items.Count() > 0)
+        {
+            foreach (var item in cartItems.Model.Items.Where(a => a.OrderStatus != 4))
+            {
+                <div class="pos-product-list-wrap">
+                    <div class="flex space-x-2">
+                        <div class="product-image">
+                            <div class="flex items-center justify-center w-16">
+                                <img alt="@item.ParentName" class="object-contain w-17/20 h-17/20" src="@item.ImageUrl">
+                            </div>
+                        </div>
+                        <div class="w-full pr-detail">
+                            <label class="block mb-1 text-xs font-medium 4xl:text-sm text-dark-1">@item.ParentName</label>
+                            @if (item.TotalProductQuantity > 0 || item.TotalProductQuantity == -1)
+                            {
+                                <div class="font-semibold text-[10px] rounded px-3 inline-block mb-1 instock ng-star-inserted"> IN STOCK </div>
+                            }
+                            else
+                            {
+                                <div class="font-semibold text-[10px] rounded px-3 inline-block mb-1 outstock ng-star-inserted"> OUT OF STOCK </div>
+                            }
+
+                            <div class="flex flex-row flex-wrap items-center space-x-3 2xl:flex-nowrap mb-1">
+                                <span class="py-[1px] font-semibold text-center text-dark-1">
+                                    <span class="text-dark-1">@BusinessService.StoreDetails.BusinessCurrencySymbol@item.UnitPrice</span>
+                                </span>
+                                @if (cartItems.Model.OrderSummary.Status != 10)
+                                {
+                                    if (!item.IsComplementary)
+                                    {
+                                        if (item.KOTStatus > 2)//(int)KOTStatus.Confirmed
+                                        {
+                                            <div class="flex w-21 mrl-auto items-center items-count-add" style="cursor:not-allowed;">
+                                                <button type="button" disabled class="flex items-center justify-center w-6 h-6 text-base font-medium rounded-full border-1 text-primary-4"> - </button>
+                                                <span>
+                                                    @item.Quantity
+                                                </span>
+                                                <button type="button" disabled class="flex items-center justify-center w-6 h-6 font-medium rounded-full border-1"> + </button>
+                                            </div>
+                                            <span class="flex items-center w-auto text-center">
+                                                <a class="btn btn-third" href="javascript:void(0)" @onclick="()=>OnCancelItemAsync(item.Id,item.LocalOrderId,item.LocalId)"> Cancel</a>
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <div class="flex w-21 pls-minus-btn mrl-auto items-center">
+                                                @if (item.Quantity <= 1)
+                                                {
+                                                    <button type="button" disabled class="flex items-center justify-center !w-5 !h-5 text-base font-medium rounded-full border-1 text-primary-4"> - </button>
+                                                }
+                                                else
+                                                {
+                                                    <button type="button" class="flex items-center justify-center !w-5 !h-5 text-base font-medium rounded-full border-1 text-primary-4 active:bg-primary-14 active:text-white" @onclick="() => DecrementQuantity(item.Id, item.Quantity.Value,item.ParentId,item.LocalId)"> - </button>
+                                                }
+                                                <span>
+                                                    @if (isloading && ItemId == item.Id)
+                                                    {
+                                                        <div class="spinner-border text-primary ml-1" role="status">
+                                                            <span class="visually-hidden">Loading...</span>
+                                                        </div>
+                                                    }
+                                                    @item.Quantity
+                                                </span>
+                                                @if (item.TotalProductQuantity == -1)
+                                                {
+                                                    <button type="button" class="flex items-center justify-center w-5 h-5 font-medium rounded-full border-1 text-primary-4 active:bg-primary-14 active:text-white" @onclick="() => IncrementQuantity(item.Id, item.Quantity.Value, item.TotalProductQuantity.Value,true,item.ParentId,item.LocalId)"> + </button>
+                                                }
+                                                else
+                                                {
+                                                    if (item.TotalProductQuantity > item.Quantity)
+                                                    {
+                                                        <button type="button" class="flex items-center justify-center !w-5 !h-5 font-medium rounded-full border-1 text-primary-4 active:bg-primary-14 active:text-white" @onclick="() => IncrementQuantity(item.Id, item.Quantity.Value, item.TotalProductQuantity.Value,false,item.ParentId,item.LocalId)"> + </button>
+
+                                                    }
+                                                    else
+                                                    {
+                                                        <button type="button" disabled class="flex items-center justify-center !w-5 !h-5 font-medium rounded-full border-1"> + </button>
+                                                    }
+                                                }
+                                            </div>
+                                            <span class="flex items-center w-auto text-center cursor-pointer ng-star-inserted ml-6" @onclick="()=>OnDeleteItemAsync(item.Id,item.ParentId,item.LocalId)">
+                                                <img src="images/close.svg" style="width: 20px;height: 20px;">
+                                            </span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <div class="flex w-21 mrl-auto items-center items-count-add">
+                                            <button type="button" disabled class="flex items-center justify-center w-6 h-6 text-base font-medium rounded-full border-1 text-primary-4"> - </button>
+                                            <span>@item.Quantity</span>
+                                            <button type="button" disabled class="flex items-center justify-center w-6 h-6 font-medium rounded-full border-1"> + </button>
+                                        </div>
+                                        <span class="flex items-center w-auto text-center" style="cursor:not-allowed;">
+                                            <img src="images/close.svg" style="width:24px;">
+                                        </span>
+                                    }
+                                }
+                            </div>
+                            <div class="font-semibold text-[10px] rounded inline-block mb-1">
+                                <div class="form-check flex items-center">
+                                    <input href="javascript:void(0)" @onclick="()=>UpdateItemAsComplementary(item.Id,item.Quantity??0,item.LocalOrderId,item.LocalId)"
+                               class="form-check-input appearance-none h-4 w-4 border border-gray-300 rounded-sm bg-white checked:bg-blue-600 checked:border-blue-600 focus:outline-none transition duration-200 align-top bg-no-repeat bg-center bg-contain float-left mr-2 cursor-pointer"
+                               type="checkbox" @bind="@item.IsComplementary" id="flexCheckDefault-@item.LocalId">
+                                    <label class="form-check-label inline-block text-gray-800 text-xs font-medium" for="flexCheckDefault-@item.LocalId">
+                                        Complementary
+                                    </label>
+                                </div>
+                            </div>
+                            <AddComplementaryReason @ref="addComplementaryReason" OnComplementary="OnComplementary"></AddComplementaryReason>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+    <div class="amount-details mb-3">
+        <div class="flex justify-between py-1.5 text-sm text-dark-2 items-center subtotal">
+            <span><b>Subtotal</b></span>
+            <span><b>@BusinessService.StoreDetails.BusinessCurrencySymbol@cartItems.Model.OrderSummary.TotalPrice</b></span>
+        </div>
+        <div class="flex justify-between py-1.5 text-sm text-dark-2 items-center">
+            <span>Discount %</span>
+            <span><input type="number" disabled="@IsDiscountDisabled" class="form-control" @onchange="@onChangeDiscount" /></span>
+        </div>
+        <div class="flex justify-between py-1.5 text-sm text-dark-2 items-center">
+            <span>Discount Amount</span>
+            <span><input type="number" disabled="@IsDiscountAmountDisabled" class="form-control" @onchange="@onChangeDiscountAmount" /></span>
+        </div>
+        @if (@cartItems.Model.OrderSummary.DeliveryCharge > 0)
+        {
+            <div class="flex justify-between py-2 text-sm text-dark-2">
+                <span>Delivery Charge</span>
+                <span>@BusinessService.StoreDetails.BusinessCurrencySymbol@cartItems.Model.OrderSummary.DeliveryCharge</span>
+            </div>
+        }
+        else
+        {
+            <div class="flex justify-between py-1.5 text-sm text-dark-2">
+                <span>Delivery Charge</span>
+                <span class="text-[#48B926] font-semibold">Free</span>
+            </div>
+        }
+        <div class="flex justify-between pt-4 pb-4 mt-2 mb-4 text-base font-semibold payable-pos text-dark-1">
+            <span> Amount Payable </span>
+            @if (TotalAmount == null || TotalAmount == 0)
+            {
+                <span>  @BusinessService.StoreDetails.BusinessCurrencySymbol@cartItems.Model.OrderSummary.TotalPayableAmount </span>
+            }
+            else
+            {
+                <span>  @BusinessService.StoreDetails.BusinessCurrencySymbol@TotalAmount </span>
+            }
+        </div>
+    </div>
+    <div class="mode-payment mb-4">
+        <span @onclick="()=>SelectPaymentMethod(1)" class="@(PaymentMethod==1?"active":"")">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.4">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+            CASH
+        </span>
+        <span @onclick="()=>SelectPaymentMethod(2)" class="@(PaymentMethod==2?"active":"")">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.4">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            </svg>
+            CARD
+        </span>
+        <span @onclick="()=>SelectPaymentMethod(3)" class="@(PaymentMethod==3?"active":"")">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+            </svg>
+            CREDIT
+        </span>
+    </div>
+    <textarea class="form-control mb-3 text-sm h-auto rounded-lg" rows="5" placeholder="Remarks" @bind="@Remark" @bind:event="oninput"></textarea>
+
+    @if (cartItems.Model.Items.Count() > 0)
+    {
+        var type = "cod";
+        @if (TableService.TableId != 0)
+        {
+            if (cartItems.Model.OrderSummary.Status == 10 || cartItems.Model.Items.Count(a => a.KOTStatus < 4) == 0)
+            {
+                <button type="submit" class="pos-btn-primary" @onclick="()=>CompleteOrder(type)">
+                    Complete Order
+                    @if (isloading)
+                    {
+                        <div class="spinner-border text-primary ml-1" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    }
+                </button>
+            }
+            else
+            {
+                <button type="submit" class="pos-btn-primary" disabled>Complete Order</button>
+            }
+        }
+        else
+        {
+            <button type="submit" class="pos-btn-primary" @onclick="()=>CompleteOrder(type)">
+                Complete Order
+                @if (isloading)
+                {
+                    <div class="spinner-border text-primary ml-1" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                }
+            </button>
+        }
+    }
+    <Confirm @ref="DeleteConfirmation" ConfirmationChanged="ConfirmDelete_Click" ConfirmationMessage=@($"Are you sure you want to remove item from cart?")></Confirm>
+    <CancelItemForm @ref="CancelConfirmation" ConfirmationChanged="CancelItemAsync"></CancelItemForm>
+}
+@code {
+
+    protected CancelItemForm CancelConfirmation { get; set; }
+
+    public void OnCancelItemAsync(int itemId, string localOrderId, string localItemId)
+    {
+        try
+        {
+            var request = new CancelItemRequestModel();
+            this.ItemId = itemId;
+            request.OrderItemId = itemId;
+            request.LocalItemId = localItemId;
+            request.LocalOrderId = localOrderId;
+            CancelRequest = request;
+            CancelConfirmation.Show(CancelRequest);
+        }
+        catch (System.Exception ex)
+        {
+            throw;
+        }
+    }
+    [Parameter]
+    public EventCallback<PaymentRequestModel> OnCompleteOrder { get; set; }
+    private int PaymentMethod { get; set; } = 1;
+    private void SelectPaymentMethod(int methodId)
+    {
+        PaymentMethod = methodId;
+    }
+    private string Remark { get; set; }
+
+    public async Task CustomerSelction(string UserId, int orderId = 0, string localOrderId = null)
+    {
+        if (localOrderId != null)
+        {
+            var response = await CartService.PartialViewCartAsync(new CartDetailRequest { OrderId = orderId, LocalOrderId = localOrderId });
+            var cartResp = new ResponseData<CartModel>();
+            cartResp.Model = new CartModel();
+            if (response.Succeeded)
+            {
+                cartResp.Model.Items = response.Model.Items;
+                cartResp.Model.OrderSummary = response.Model.OrderSummary;
+                cartResp.Status = response.Status;
+                SelectedCustomer = response.Model.Customer == null ? new CustomerResponseModel() : response.Model.Customer;
+            }
+            cartItems = this.CartService.Cart = cartResp;
+        }
+        else if (UserId != null)
+        {
+            cartItems = this.CartService.Cart = await this.CartService.POSViewCartAsync<ResponseData<CartModel>>(UserId);
+            if (cartItems != null && cartItems.Model != null && cartItems.Model.Items != null)
+            {
+                CartService.ActiveOrderId = cartItems.Model.Items.FirstOrDefault().OrderId;
+                CartService.ActiveLocalOrderId = cartItems.Model.LocalId;
+            }
+        }
+        else
+            cartItems = new ResponseData<CartModel>();
+        StateHasChanged();
+    }
+    public async void CompleteOrder(string type)
+    {
+        @if (cartItems.Model.Items.Count() > 0)
+        {
+            CompleteOrderRequestModel req = new CompleteOrderRequestModel();
+            isloading = true;
+            var parentId = string.Join(",", cartItems.Model.Items.Select((x) => x.ParentId + "=" + x.Quantity.ToString()));
+            req.PaymentType = type;
+            req.OrderId = cartItems.Model.OrderSummary.OrderId.GetValueOrDefault();
+            req.LocationId = 0;
+            req.ParentId = parentId;
+            req.CustomerId = CustomerId;
+            req.Remark = Remark;
+            req.PaymentMethod = PaymentMethod;
+            req.Discount = Discount;
+            req.DiscountAmount = DiscountAmount;
+            req.LocalOrderId = CartService.ActiveLocalOrderId;
+            req.TableId = TableService.TableId;
+            var responseData = await this.CartService.CompleteOrderAsync(req);
+            if (responseData != null && responseData.Model != null)
+            {
+                PaymentMethod = 1;
+                Remark = null;
+                isloading = false;
+                await this.OnCompleteOrder.InvokeAsync(new PaymentRequestModel
+                    {
+                        OrderNumber = responseData.Model.Order_id,
+                        PaymentType = responseData.Model.PaymentType,
+                        LocalOrderId = req.LocalOrderId,
+                        TableId = req.TableId,
+                        IsOrderCompleted = true
+                    });
+            }
+        }
+    }
+}

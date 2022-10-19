@@ -1,0 +1,132 @@
+﻿
+@if (isAfterLoaded)
+{@*
+    <div class="left-sidebar">
+        <LeftPanel activeTab="2" ActiveOrderCount="this.OrderService.ActiveOrderCount"></LeftPanel>
+    </div>*@
+}
+<div class="content-with-right-panel" style="right:0">
+    <div class="flex items-center justify-between pos-top-search-area">
+        <h2 class="mb-0 font-medium">Active Orders</h2>
+    </div>
+
+    <div class="w-full">
+        <div class="product-list-wrap-pos order-history-top" id="product-list">
+            <div class="flex flex-wrap">
+                <div class="w-3/12 history-listing">
+
+                    @if (ActiveTableOrders != null && ActiveTableOrders.Count() > 0)
+                    {
+                        foreach (var item in ActiveTableOrders)
+                        {
+                            <div>
+                                @if (item.OrderStatus == 10)
+                                {
+                                    <a class="@(LocalOrderId==item.LocalOrderId?"active":"")" href="javascript:void(0)" @onclick="()=>ChangeOrder(item.TableId, item.OrderId, null, item.LocalOrderId)">
+                                        @item.TableName - @(string.IsNullOrEmpty(item.ExternalOrderId)? item.OrderId:item.ExternalOrderId) - Invoiced
+                                        <span>
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 mr-1">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            @item.OrderDtm.AddMinutes(BusinessService.UserTimeSpan.Value.TotalMinutes).ToString("hh.mm tt")
+                                        </span>
+                                    </a>
+                                }
+                                else
+                                {
+                                    <a class="@(LocalOrderId==item.LocalOrderId?"active":"")" href="javascript:void(0)" @onclick="()=>ChangeOrder(item.TableId, item.OrderId, null, item.LocalOrderId)">
+                                        @item.TableName - @(string.IsNullOrEmpty(item.ExternalOrderId)? item.OrderId:item.ExternalOrderId) 
+                                        <span>
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 mr-1">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            @item.OrderDtm.AddMinutes(BusinessService.UserTimeSpan.Value.TotalMinutes).ToString("hh.mm tt")
+                                        </span>
+                                    </a>
+                                }
+
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p>No Active Orders!</p>
+                    }
+                </div>
+                <div class="w-9/12 reports-wrap">
+                    <div class="flex justify-content-between history-datepicker items-center max-w-[600px]">
+                        <div class="right-scroll-area w-full">
+                            <GM.Store.Client.Pages.POS.Cart @ref="cart" IsFromPOS="true" OnCompleteOrder="CompleteOrder"></GM.Store.Client.Pages.POS.Cart>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<OrderSummary @ref="orderSummary" OnorderSummaryClose="OrderSummaryClose"></OrderSummary>
+
+@code {
+    protected OrderSummary orderSummary { get; set; }
+    private void CompleteOrder(PaymentRequestModel model)
+    {
+        orderSummary.Show(model);
+    }
+    private POS.Cart cart;
+    private async Task OrderSummaryClose(bool val)
+    {
+        // SelectedCustomer = new CustomerResponseModel();
+        await this.cart.CustomerSelction(null);
+        await LoadData();
+        StateHasChanged();
+    }
+    public int ActiveOrderId { get; set; }
+    public string LocalOrderId { get; set; }
+    public List<TableOrders> ActiveTableOrders { get; set; }
+    public bool isAfterLoaded;
+    protected override async Task OnInitializedAsync()
+    {
+        this.OrderService.ActiveOrderCount = 0;
+        await this.localStorage.SetItemAsync("ActiveOrderCount", 0);
+        isAfterLoaded = true;
+        var authstate = await AuthState.GetAuthenticationStateAsync();
+        var user = authstate.User;
+        if (user.Identity.Name != null)
+        {
+            await LoadData();
+        }
+        else
+        {
+            this.NavigationManager.NavigateTo($"/pos/login");
+        }
+
+    }
+    public async Task LoadData()
+    {
+        var resposne = await TableService.GetActiveTableOrdersAsync<ResponseData<List<TableOrders>>>();
+        if (resposne.Succeeded && resposne.Model != null)
+        {
+            ActiveTableOrders = resposne.Model.ToList();
+            StateHasChanged();
+            ActiveOrderId = ActiveTableOrders.FirstOrDefault().OrderId;
+            this.TableService.TableId = ActiveTableOrders.FirstOrDefault().TableId;
+            LocalOrderId = ActiveTableOrders.FirstOrDefault().LocalOrderId;
+            CartService.ActiveLocalOrderId = LocalOrderId;
+            await this.cart.CustomerSelction(null, ActiveOrderId, LocalOrderId);
+        }
+        else
+        {
+            ActiveTableOrders = new List<TableOrders>();
+        }
+    }
+    public async Task ChangeOrder(int tableId, int orderId, string userId, string localOrderId)
+    {
+        ActiveOrderId = orderId;
+        LocalOrderId = localOrderId;
+        this.TableService.TableId = tableId;
+        CartService.ActiveOrderId = orderId;
+        CartService.ActiveLocalOrderId = localOrderId;
+        await this.cart.CustomerSelction(userId, orderId, localOrderId);
+        StateHasChanged();
+    }
+}

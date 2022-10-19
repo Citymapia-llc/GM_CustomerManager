@@ -1,0 +1,106 @@
+﻿@using Blazored.LocalStorage;
+@using System.Net.Http.Headers
+@using System.Web
+@inject HttpClient httpClient;
+@inject ILocalStorageService localStorage;
+@if (isLoaded)
+{
+    if (!isExpired)
+    {
+        @ChildContent
+        <style>
+            @((MarkupString)CustomCss)
+        </style>
+    }
+    else
+    {
+        <p>Your business Trail validity has been expired!</p>
+    }
+}
+else
+{
+    <Loading></Loading>
+}
+
+@code {
+
+    bool isLoaded;
+    bool isExpired;
+    [Inject]
+    public NavigationManager MyNavigationManager { get; set; }
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+    public string UserName;
+    public string CustomCss;
+    public BusinessModel model;
+    public string relativeUrl=null;
+    protected override async Task OnInitializedAsync()
+    {
+        var currentPortal = "pos";
+        relativeUrl = HttpUtility.UrlEncode(MyNavigationManager.ToBaseRelativePath(MyNavigationManager.Uri)).ToLower();
+        if(relativeUrl.Contains("supplier"))
+        {
+            currentPortal = "supplier";
+        }else if(relativeUrl.Contains("pos"))
+        {
+            currentPortal = "pos";
+        }else if(relativeUrl.Contains("chef"))
+        {
+            currentPortal = "chef";
+        }
+        await this.localStorage.SetItemAsync("CurrentPortal", currentPortal);
+        this.BusinessService.CurrentPortal = currentPortal;
+        var authstate = await AuthState.GetAuthenticationStateAsync();
+        var user = authstate.User;
+        UserName = user.Identity.Name;
+        this.httpClient.DefaultRequestHeaders.Add("Referer", MyNavigationManager.BaseUri);
+        var response = await this.BusinessService.GetAllAsync<ResponseData<BusinessModel>>();
+        if (response.Succeeded)
+        {
+            var authtoken = "authToken";
+            if (currentPortal != "store")
+            {
+                authtoken = $"authToken-{currentPortal}";
+            }
+            if (UserName == null)
+            {
+                var token = response.Model.AuthToken;
+                await this.localStorage.SetItemAsync(authtoken, token);
+                this.httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+            else
+            {
+                var businessId = user.Claims.FirstOrDefault(a => a.Type == "AppId").Value;
+                if (response.Model.Id != Convert.ToInt32(businessId))
+                {
+                    var token = response.Model.AuthToken;
+                    await this.localStorage.SetItemAsync(authtoken, token);
+                    this.httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                }
+            }
+            model = this.BusinessService.StoreDetails = response.Model;
+            await this.localStorage.SetItemAsync("storeDetails", response.Model);
+            if (model.CitymapiaVersion == 5)
+                this.BusinessService.IsListEnabled = true;
+        }
+        else if (response.Status == 503)
+        {
+            await this.localStorage.RemoveItemAsync("storeDetails");
+            isExpired = true;
+        }
+        isLoaded = true;
+    }
+    protected override async Task OnAfterRenderAsync(bool firstrender)
+    {
+        if (model != null)
+        {
+            if (this.BusinessService.UserTimeSpan == null)
+            {
+                int timeDiffer = await JS.InvokeAsync<int>("GetTimezoneValue");
+                this.BusinessService.UserTimeSpan = TimeSpan.FromMinutes(-timeDiffer);
+            }
+            await JS.InvokeVoidAsync("PageTitle", model.BusinessName);
+            await JS.InvokeVoidAsync("SetFav", model.Favicon);
+        }
+    }
+}

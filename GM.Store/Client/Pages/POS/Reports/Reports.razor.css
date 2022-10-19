@@ -1,0 +1,123 @@
+﻿.invoice-box {
+    max-width: 440px;
+    margin: auto;
+    padding: 16px;
+    font-size: 16px;
+    line-height: 24px;
+    color: #555;
+    background: #fff;
+}
+
+.hd-one {
+    width: 200px;
+}
+
+.hd-two {
+    text-align: left !important;
+}
+
+.res-name {
+    font-weight: 600;
+    padding-bottom: 0px !important;
+    text-align: center;
+}
+
+.pb-0 {
+    padding-bottom: 0px !important;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.invoice-box table {
+    width: 100%;
+    line-height: inherit;
+    text-align: left;
+}
+
+    .invoice-box table td {
+        padding: 5px;
+        vertical-align: top;
+    }
+
+    .invoice-box table tr td:nth-child(2) {
+        text-align: right;
+    }
+
+    .invoice-box table tr.top table td {
+        padding-bottom: 20px;
+    }
+
+        .invoice-box table tr.top table td.title {
+            font-size: 45px;
+            line-height: 45px;
+            color: #333;
+        }
+
+    .invoice-box table tr.information table td {
+        padding-bottom: 40px;
+    }
+
+    .invoice-box table tr.heading td {
+        background: #eee;
+        border-bottom: 1px solid #ddd;
+        font-weight: bold;
+    }
+
+    .invoice-box table tr.details td {
+        padding-bottom: 20px;
+    }
+
+.total-bill td {
+    border-bottom: 1px solid #eee;
+}
+
+.invoice-box table tr.item.last td {
+    border-bottom: none;
+}
+
+.invoice-box item td span {
+    display: block;
+}
+
+.invoice-box table tr.total td:nth-child(2) {
+    border-top: 2px solid #eee;
+    font-weight: bold;
+}
+
+.subtotal-billview {
+    font-weight: 700;
+}
+
+.thanking {
+    margin-bottom: 0px;
+}
+
+.invoice-box.rtl {
+    direction: rtl;
+}
+
+    .invoice-box.rtl table {
+        text-align: right;
+    }
+
+        .invoice-box.rtl table tr td:nth-child(2) {
+            text-align: left;
+        }
+
+.border-tr-none tr {
+    border-bottom: none !important;
+}
+
+.new-items-head .text-center {
+    text-align: center !important;
+}
+
+.text-right {
+    text-align: right !important;
+}
+
+.sales .text-center {
+    text-align: center !important;
+}

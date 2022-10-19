@@ -1,0 +1,303 @@
+﻿@using Append.Blazor.Printing;
+@inject IPrintingService PrintingService
+@page "/pos/print/{OrderId}"
+@if (ShowPrintView)
+{
+    <div id="printable-form" style="    visibility: hidden;">
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <link type="text/css" media="print" />
+            <style>
+                .invoice-box {
+                    max-width: 440px;
+                    margin: auto;
+                    padding: 16px;
+                    font-size: 16px;
+                    line-height: 24px;
+                    color: #555;
+                    background: #fff;
+                }
+
+                .hd-one {
+                    width: 200px;
+                }
+
+                .hd-two {
+                    text-align: left !important;
+                }
+
+                .res-name {
+                    font-weight: 600;
+                    padding-bottom: 0px !important;
+                    text-align: center;
+                }
+
+                .pb-0 {
+                    padding-bottom: 0px !important;
+                }
+
+                .text-center {
+                    text-align: center;
+                }
+
+                .invoice-box table {
+                    width: 100%;
+                    line-height: inherit;
+                    text-align: left;
+                }
+
+                    .invoice-box table td {
+                        padding: 5px;
+                        vertical-align: top;
+                    }
+
+                    .invoice-box table tr td:nth-child(2) {
+                        text-align: right;
+                    }
+
+                    .invoice-box table tr.top table td {
+                        padding-bottom: 20px;
+                    }
+
+                        .invoice-box table tr.top table td.title {
+                            font-size: 45px;
+                            line-height: 45px;
+                            color: #333;
+                        }
+
+                    .invoice-box table tr.information table td {
+                        padding-bottom: 40px;
+                    }
+
+                    .invoice-box table tr.heading td {
+                        background: #eee;
+                        border-bottom: 1px solid #ddd;
+                        font-weight: bold;
+                    }
+
+                    .invoice-box table tr.details td {
+                        padding-bottom: 20px;
+                    }
+
+                    .total-bill td {
+                        border-bottom: 1px solid #eee;
+                    }
+
+                    .invoice-box table tr.item.last td {
+                        border-bottom: none;
+                    }
+
+                .invoice-box item td span {
+                    display: block;
+                }
+
+                .invoice-box table tr.total td:nth-child(2) {
+                    border-top: 2px solid #eee;
+                    font-weight: bold;
+                }
+
+                .subtotal-billview {
+                    font-weight: 700;
+                }
+
+                .thanking {
+                    margin-bottom: 0px;
+                }
+
+                .invoice-box.rtl {
+                    direction: rtl;
+                }
+
+                    .invoice-box.rtl table {
+                        text-align: right;
+                    }
+
+                        .invoice-box.rtl table tr td:nth-child(2) {
+                            text-align: left;
+                        }
+
+                .border-tr-none tr {
+                    border-bottom: none !important;
+                }
+            </style>
+        </head>
+        <body>
+            @if (model != null)
+            {
+                <div class="modal fade fixed top-0 left-0 hidden w-full h-full outline-none overflow-x-hidden overflow-y-auto show order-history-pop"
+             tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true" style="display: block; padding-left: 0px;">
+                    <div class="invoice-box">
+                        <table cellpadding="0" cellspacing="0" class="border-tr-none">
+                            <tr class="top">
+                                <td colspan="2">
+                                   @* <table>
+                                        <tr>
+                                            <td class="res-name pt-0">THE VEMBANAD RESTAURANT</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-center pt-0 pb-0">Building No:16 Shop No:38</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-center pt-0 pb-0">Barwa Village, Doha Qatar</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-center pt-0 pb-0">PH:50732477, 44125928</td>
+                                        </tr>
+                                    </table>*@
+                                    <table>
+                                        <tr>
+                                            <td class="res-name pt-0">@businessModel.BusinessName</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-center pt-0 pb-0">@businessModel.Address.FirstOrDefault().Address.Split(',')[0]</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-center pt-0 pb-0">@businessModel.Address.FirstOrDefault().Address.Substring(@businessModel.Address.FirstOrDefault().Address.Split(",")[0].Length)</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-center pt-0 pb-0">@businessModel.Address.FirstOrDefault().AdditionalInfo</td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                        <table cellpadding="0" cellspacing="0" class="border-tr-none">
+                            <tr class="heading">
+                                <td colspan="5" class="text-center">Tax Invoice</td>
+                            </tr>
+                            @if (model.OrderDetails != null && model.OrderDetails.FirstOrDefault().KOTNumber != 0)
+                            {
+                                <tr class="details">
+                                    <td class="pb-0">KOT NO :</td>
+                                    <td class="pb-0">
+                                        @foreach (var item in model.OrderDetails.GroupBy(a => new { a.KOTNumber }))
+                                        {
+                                            <span> @item.Key.KOTNumber, </span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                            <tr class="details">
+                                <td class="pb-0">Date :</td>
+
+                                <td class="pb-0">@model.OrderedOn.GetValueOrDefault().ToString("MMM dd,yyyy") <span>@model.OrderedOn.GetValueOrDefault().ToString("hh:mm tt")</span></td>
+                            </tr>
+                            @if (model.OrderDetails != null && !string.IsNullOrEmpty(model.OrderDetails.Select(a=>a.SectionName).FirstOrDefault()))
+                            {
+                                <tr class="details">
+                                    <td class="pb-0">Section :</td>
+                                    <td class="pb-0">@model.OrderDetails.Select(a=>a.SectionName).FirstOrDefault()</td>
+                                </tr>
+                            }
+                            @if (model.OrderDetails != null && !string.IsNullOrEmpty(model.OrderDetails.Select(a=>a.TableNumber).FirstOrDefault()))
+                            {
+                                <tr class="details">
+                                    <td class="pb-0">Table No :</td>
+                                    <td class="pb-0">@model.OrderDetails.Select(a=>a.TableNumber).FirstOrDefault()</td>
+                                </tr>
+                            }
+                        </table>
+                        <table cellpadding="0" cellspacing="0">
+                            <tr class="heading">
+                                <td class="hd-one">Item Name</td>
+                                <td class="hd-two">Qty & Price</td>
+                                <td class="hd-three">Total</td>
+                            </tr>
+                            @foreach (var item in model.OrderDetails)
+                            {
+                                <tr class="item">
+                                    <td>
+                                        @item.ProductName<span class="block">@item.ProductCaption</span>
+                                        @if (item.OrderStatus == 4)
+                                        {
+                                            <span class="text-red-1">Cancelled</span>
+                                        }
+                                        @if (item.IsComplementary)
+                                        {
+                                            <span class="text-blue-700 mb-0">Complementary</span>
+                                        }
+                                    </td>
+                                    <td class="hd-two">@item.Quantity * @item.UnitPrice</td>
+                                    <td>@businessModel.BusinessCurrencySymbol@(item.TotalPrice??0)</td>
+                                </tr>
+                            }
+                            <tbody>
+                                <tr class="item total-bill">
+                                    <td><span class="block"></span></td>
+                                    <td class="hd-two"><b>Total:</b> </td>
+                                    <td><b>@businessModel.BusinessCurrencySymbol@model.Amount</b> </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p class="text-center pb-0 thanking">Thank you, Have a nice day</p>
+                    </div>
+                </div>
+            }
+        </body>
+    </html>
+    </div>
+
+
+
+
+
+}
+
+@code {
+    private bool ShowPrintView { get; set; }
+    private OrderSuccessModel model;
+    public BusinessModel businessModel { get; set; }
+    [Parameter]
+    public EventCallback<bool> OnorderSummaryClose { get; set; }
+    [Parameter]
+    public string OrderId { get; set; }
+    protected override async Task OnInitializedAsync()
+    {
+        businessModel = BusinessService.StoreDetails;
+        //if (ShowPrintView == true)
+        //{
+        //    await PrintingService.Print("printable-form", PrintType.Html);
+        //}
+        //else
+        //{
+        //    var response = await this.OrderHistoryService.GetOrderDetailAsync<ResponseData<OrderSuccessModel>>(OrderId);
+        //    if (response.Succeeded)
+        //    {
+        //        ShowPrintView = true;
+
+        //        model = response.Model;
+        //        StateHasChanged();
+        //        //await this.JS.InvokeVoidAsync("printFunction");
+        //        await PrintingService.Print("printable-form", PrintType.Html);
+
+        //    }
+        //}
+    }
+    public async Task OnloadAsync(string localOrderId)
+    {
+        var response = await this.OrderHistoryService.GetOrderDetailAsync<ResponseData<OrderSuccessModel>>(localOrderId);
+        if (response.Succeeded && response.Model != null)
+        {
+            ShowPrintView = true;
+            model = response.Model;
+            StateHasChanged();
+            //await this.JS.InvokeVoidAsync("printFunction");
+            await PrintingService.Print("printable-form", PrintType.Html);
+
+        }
+    }
+    public async Task OnloadByOrderIdAsync(int orderId)
+    {
+        var response = await this.OrderHistoryService.GetOrderDetailByIdAsync<ResponseData<OrderSuccessModel>>(orderId);
+        if (response.Succeeded && response.Model != null)
+        {
+            ShowPrintView = true;
+            model = response.Model;
+            StateHasChanged();
+            //await this.JS.InvokeVoidAsync("printFunction");
+            await PrintingService.Print("printable-form", PrintType.Html);
+
+        }
+    }
+}

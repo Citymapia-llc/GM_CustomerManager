@@ -1,0 +1,93 @@
+﻿@if (ShowConfirmation)
+{
+    @if (model != null)
+    {
+        <div class="modal fade fixed top-0 left-0 hidden w-full h-full outline-none overflow-x-hidden overflow-y-auto show" tabindex="-1" aria-labelledby="exampleModalLabel" aria-modal="true" role="dialog" style="display: block;">
+            <div class="modal-dialog modal-dialog-centered relative w-auto pointer-events-none">
+                <div class="modal-content rounded-0 border-none shadow-lg relative flex flex-col w-full pointer-events-auto bg-white bg-clip-padding rounded-md outline-none text-current">
+                    <div class="flex items-center justify-between px-3 h-15 bg-primary-12 ng-star-inserted">
+                        <h5 class="font-semibold lg:text-lg 4xl:text-lg">Add a reason</h5>
+                        <a href="javascript:void(0)" @onclick="CloseModal" class="close !text-lg" data-dismiss="modal" aria-label="close">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </a>
+                    </div>
+                    <EditForm Model="model" OnValidSubmit="SubmitAsync">
+                        <div class="modal-body relative p-4">
+                            <DataAnnotationsValidator />
+                            <div class="w-full mb-3">
+                                <p>@model.Name</p>
+                            </div>
+                            <div class="w-full mb-3">
+                                    <p class="text-primary-4 text-[14px] form-label text-primary-4">Reason</p>
+                                    <div class="w-full mt-3">
+                                        <InputTextArea @bind-Value="model.Reason" class="font-medium border form-input w-full px-1 rounded-md" rows="4" maxlength="150" type="text" />
+                                        <div class="error-validation">
+                                            <ValidationMessage For="() => model.Reason" />
+                                        </div>
+                                    </div>
+                            </div>
+                            @if (model.TotalQuantity > 1 && model.IsComplementary != true)
+                            {
+                                <div class="w-full mb-3">
+                                    <label for="Name" class="form-label text-[14px] text-primary-4">Quantity (between 1 and @model.TotalQuantity)</label>
+                                    <input @bind="@model.Quantity" class="font-medium border px-1 form-input w-full rounded-md" type="number" onforminput="1" max="@model.TotalQuantity" />
+                                    <div class="error-validation"><ValidationMessage For="() => model.Quantity" /></div>
+                                </div>
+                            }
+                        </div>
+                        <div class="modal-footer flex flex-shrink-0 flex-wrap items-center justify-end p-4 border-t border-gray-200 rounded-b-md">
+                            <button type="submit" class="btn-green">Save</button>
+                            <button type="button" class="cancel-button ml-2" @onclick="CloseModal">Cancel</button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+        <div class="modal-backdrop fade show"></div>
+    }
+}
+@code {
+    protected bool ShowConfirmation { get; set; }
+    private OrderComplementary model = new OrderComplementary();
+    [Parameter]
+    public EventCallback<bool> OnComplementary { get; set; }
+    public async Task Show(int orderItemId, int totalQuantity = 0,string localOrderId=null,string localItemId=null)
+    {
+        model = new OrderComplementary();
+
+        ShowConfirmation = true;
+        model.Id = orderItemId;
+        model.TotalQuantity = totalQuantity;
+        //var response = await CartService.GetOrderItemComplementaryReasonAsync<ResponseData<OrderComplementary>>(orderItemId);
+        var response = await CartService.GetOrderItemComplementaryReasonAsync(new OrderComplementaryRequest { ItemOrderId = orderItemId, LocalItemId = localItemId, LocalOrderId = localOrderId });
+        if (response.Succeeded)
+            model.Reason = response.Model.Reason;
+        model.Quantity = response.Model.Quantity;
+        model.Name = response.Model.Name;
+        model.IsComplementary = response.Model.IsComplementary;
+        model.LocalItemId = localItemId;
+        model.LocalOrderId = localOrderId;
+        StateHasChanged();
+    }
+    public async Task CloseModal()
+    {
+        ShowConfirmation = false;
+        await OnComplementary.InvokeAsync(false);
+        StateHasChanged();
+    }
+    public async Task SubmitAsync()
+    {
+        var result = await this.CartService.ComplementaryitemAsync(new ComplementaryitemRequestModel {LocalItemId=model.LocalItemId,LocalOrderId=model.LocalOrderId, OrderItemId = model.Id, Reason = model.Reason, Quantity = model.Quantity });
+        if (result)
+        {
+            ShowConfirmation = false;
+            await OnComplementary.InvokeAsync(true);
+            StateHasChanged();
+        }
+        else
+        {
+        }
+    }
+}

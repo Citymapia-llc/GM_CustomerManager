@@ -1,0 +1,95 @@
+﻿@page "/account/login"
+@using System.Text.RegularExpressions
+<section class="login-screen bg-[#f2f6fc]">
+    <div class="register-form">
+
+        @if (isOtp == false)
+        {
+            <EditForm Model="model" OnValidSubmit="SubmitAsync">
+                <div class="bg-white rounded-md px-8 pt-6 pb-8 mb-4 flex flex-col username-wrap">
+                    @if (businessModel != null)
+                    {
+                        <div class="log-wrap cursor-pointer" @onclick="@(()=>NavigationManager.NavigateTo("/"))">
+                            <img src="@businessModel.Logo" alt="@businessModel.BusinessName" class="w-full" />
+                        </div>
+                    }
+                    <h2 class="mt-6 mb-6 text-center text-2xl font-extrabold text-dark-1">Login to Continue</h2>
+                    <div class="mb-4">
+                        @*<label class="block text-grey-darker text-base mb-2" for="username">
+                            Username
+                        </label>*@
+                        <input @bind="@model.EmailPhone" @bind:event="oninput" @onkeyup="CheckEmailORPhone" class="appearance-none border w-full py-2 px-3 text-grey-darker" placeholder="Enter Email/Phone">
+                        @if (warningMessage != "")
+                        {
+                            <p class="error mt-3">@warningMessage</p>
+                        }
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <button class="btn-primary hover:bg-blue-dark text-white font-bold py-2 px-4" type="submit">
+                            continue
+                            @if (isLoading)
+                            {
+                                <div class="spinner-border text-primary ml-1" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            }
+                        </button>
+                    </div>
+                    <div class="flex items-center mt-4">
+                        Don't have an account yet ?
+                        <a class="font-medium text-indigo-600 hover:text-indigo-500 ml-1" href="@registerUrl">
+                            Register
+                        </a>
+                    </div>
+                </div>
+            </EditForm>
+        }
+        else
+        {
+            <EditForm Model="model" OnValidSubmit="OTPSubmitAsync">
+                <DataAnnotationsValidator />
+                <div class="bg-white rounded-md px-8 pt-6 pb-8 mb-4 flex flex-col username-wrap">
+                    @if (businessModel != null)
+                    {
+                        <div class="log-wrap cursor-pointer" @onclick="@(()=>NavigationManager.NavigateTo("/"))">
+                            <img src="@businessModel.Logo" alt="@businessModel.BusinessName" class="w-full" />
+                        </div>
+                    }
+                    <h2 class="mt-6 mb-6 text-center text-2xl font-extrabold text-dark-1">Sign in to your account</h2>
+                    <div class="mb-4">
+                        <label class="block text-grey-darker text-base mb-2" for="username">
+                            Otp
+                        </label>
+                        <InputText @bind-Value="otpModel.Otp" class="appearance-none border w-full py-2 px-3 text-grey-darker" placeholder="username" type="text" />
+                    </div>
+                    <div class="flex items-center justify-between mb-4">
+                        <a class="font-medium text-indigo-600 hover:text-indigo-500 text-sm" href="javascript:void(0)" @onclick="ResendOtp">
+                            Resend?
+                            @if (isResendLoading)
+                            {
+                                <div class="spinner-border text-primary ml-1" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            }
+                        </a>
+                        <a class="font-medium text-indigo-600 hover:text-indigo-500 text-sm" href="@registerUrl">
+                            Register
+                        </a>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <button class="btn-primary hover:bg-blue-dark text-white font-bold py-2 px-4" type="submit">
+                            Sign In
+                            @if (isLoading)
+                            {
+                                <div class="spinner-border text-primary ml-1" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            }
+                        </button>
+                    </div>
+                </div>
+            </EditForm>
+        }
+    </div>
+</section>
+

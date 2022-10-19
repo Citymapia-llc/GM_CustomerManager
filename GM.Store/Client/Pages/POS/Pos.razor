@@ -1,0 +1,59 @@
+﻿@page "/pos"
+@page "/pos/activeorders"
+@page "/pos/reciepts"
+@page "/pos/reports"
+@page "/pos/sync"
+@page "/pos/products"
+@using Microsoft.AspNetCore.SignalR.Client;
+@using System.Web
+<link href="_content/Blazored.Typeahead/blazored-typeahead.css" rel="stylesheet" />
+
+@if (isAfterLoaded == true)
+{
+    <div class="left-sidebar">
+        <LeftPanel OnChangeTab="ChangeTab" activeTab="activeTab"></LeftPanel>
+    </div>
+    @if (activeTab == 1)
+    {
+        <GM.Store.Client.Pages.POS.Receipt></GM.Store.Client.Pages.POS.Receipt>
+        @*<GM.Store.Client.Pages.POS.Products></GM.Store.Client.Pages.POS.Products>*@
+    }
+    else if (activeTab == 3)
+    {
+        <GM.Store.Client.Pages.POS.Contact></GM.Store.Client.Pages.POS.Contact>
+    }
+    else if (activeTab == 4)
+    {
+        <GM.Store.Client.Pages.POS.Reports.Reports></GM.Store.Client.Pages.POS.Reports.Reports>
+    }
+    else if (activeTab == 5)
+    {
+        <GM.Store.Client.Pages.POS.Sync></GM.Store.Client.Pages.POS.Sync>
+    }
+}
+
+@code {
+    public int activeTab { get; set; } = 1;
+    private LeftPanel leftPanel { get; set; }
+    private HubConnection? hubConnection;
+    protected BusinessModel businessModel;
+    protected bool isAfterLoaded;
+    protected override async Task OnInitializedAsync()
+    {
+        var relativeUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri).ToLower();
+        if (relativeUrl.Contains("pos/products"))
+            activeTab = 6;
+        else if (relativeUrl=="pos")
+            activeTab = 3;
+        StateHasChanged();
+        businessModel = await this.localStorage.GetItemAsync<BusinessModel>("storeDetails", null);
+        isAfterLoaded = true;
+        StateHasChanged();
+    }
+    public async Task ChangeTab(PosNavigationModel model)
+    {
+        this.NavigationManager.NavigateTo(model.Url, false, true);
+        this.activeTab = model.TabId;
+        StateHasChanged();
+    }
+}

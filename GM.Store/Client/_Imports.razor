@@ -1,0 +1,39 @@
+﻿@using System.Net.Http
+@using System.Threading.Tasks;
+@using Append.Blazor.Printing
+@using GM.Store.Client.Infrastructure
+@using GM.Store.Client.Infrastructure.Services
+@using GM.Store.Client.Infrastructure.Services.POS.Product
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Components.Routing
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.AspNetCore.Components.Web.Virtualization
+@using Microsoft.JSInterop
+@using GM.Store.Client
+@using GM.Store.Client.Data
+@using GM.Store.Client.Shared
+@using MudBlazor
+@using GM.Store.Client.Pages.UserAccount
+@using Blazored.LocalStorage;
+@using Microsoft.AspNetCore.SignalR.Client
+@using GM.Store.Shared.Models;
+@using Blazored.Toast
+@using Blazored.Toast.Services
+@inject ILocalStorageService localStorage
+@inject ApiAuthenticationStateProvider AuthState
+@inject NavigationManager NavigationManager
+@inject HttpClient Http
+@inject IBusinessService BusinessService
+@inject IAuthService AuthService
+@inject IUserService UserService
+@inject ISMSService SMSService
+@inject IJSRuntime JS
+@inject IProductService ProductService
+@inject IOrderHistoryService OrderHistoryService
+@inject IPrintingService PrintingService
+@inject IReportService ReportService
+@inject IRecieptService RecieptService
+@inject ISyncService SyncService
+@inject IToastService ToastService

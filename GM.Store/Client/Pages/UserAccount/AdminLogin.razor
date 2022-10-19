@@ -1,0 +1,68 @@
+﻿@page "/{loginUrl}/login"
+<section class="login-screen bg-[#f2f6fc]">
+    <div class="register-form">
+        <EditForm Model="model" OnValidSubmit="SubmitAsync">
+            <div class="bg-white rounded-md px-8 pt-6 pb-8 mb-4 flex flex-col username-wrap">
+                @if (businessModel != null)
+                {
+                    <div class="log-wrap cursor-pointer" @onclick="@(()=>NavigationManager.NavigateTo(Url))">
+                        <img src="@businessModel.Logo" alt="@businessModel.BusinessName" class="w-full" />
+                    </div>
+                }
+                <h2 class="mt-6 mb-6 text-center text-2xl font-extrabold text-dark-1">Login to Continue</h2>
+                <div class="mb-4">
+                    <input @bind-value="@model.UserName" class="appearance-none border w-full py-2 px-3 text-grey-darker" placeholder="Enter Email/Phone">
+                </div>
+                <div class="mb-4">
+                    <input @bind-value="@model.Password" type="password" class="appearance-none border w-full py-2 px-3 text-grey-darker" placeholder="Enter Password">
+                    @if (warningMessage != "")
+                    {
+                        <p class="error mt-3">@warningMessage</p>
+                    }
+                </div>
+                <div class="flex items-center justify-between">
+                    <button class="btn-primary hover:bg-blue-dark text-white font-bold py-2 px-4" type="submit">
+                        continue
+                        @if (isLoading)
+                        {
+                            <div class="spinner-border text-primary ml-1" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        }
+                    </button>
+                </div>
+            </div>
+        </EditForm>
+    </div>
+</section>
+
+
+@code {
+    private readonly LoginModel model = new LoginModel();
+    [Parameter]
+    public string loginUrl { get; set; }
+    public string Url { get; set; }
+    private BusinessModel businessModel;
+    private bool isLoading = false;
+    private string warningMessage { get; set; }
+    protected override void OnInitialized()
+    {
+        businessModel = BusinessService.StoreDetails;
+        Url = $"/{loginUrl}/login";
+    }
+    private async Task SubmitAsync()
+    {
+        isLoading = true;
+        var result = await this.AuthService.AdminLogin(this.model,loginUrl);
+        if (result != null && result.Succeeded)
+        {
+            this.NavigationManager.NavigateTo($"/{loginUrl}");
+        }
+        else
+        {
+            warningMessage = result.Message;
+        }
+        isLoading = false;
+        this.StateHasChanged();
+    }
+}

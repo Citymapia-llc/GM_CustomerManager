@@ -1,0 +1,111 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <ServiceWorkerAssetsManifest>service-worker-assets.js</ServiceWorkerAssetsManifest>
+	  <WasmNativeBuild>true</WasmNativeBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Pages\Cart\**" />
+    <Compile Remove="Pages\Category\**" />
+    <Compile Remove="Pages\Chef\**" />
+    <Compile Remove="Pages\Products\**" />
+    <Compile Remove="Pages\Supplier\**" />
+    <Content Remove="Pages\Cart\**" />
+    <Content Remove="Pages\Category\**" />
+    <Content Remove="Pages\Chef\**" />
+    <Content Remove="Pages\Products\**" />
+    <Content Remove="Pages\Supplier\**" />
+    <EmbeddedResource Remove="Pages\Cart\**" />
+    <EmbeddedResource Remove="Pages\Category\**" />
+    <EmbeddedResource Remove="Pages\Chef\**" />
+    <EmbeddedResource Remove="Pages\Products\**" />
+    <EmbeddedResource Remove="Pages\Supplier\**" />
+    <None Remove="Pages\Cart\**" />
+    <None Remove="Pages\Category\**" />
+    <None Remove="Pages\Chef\**" />
+    <None Remove="Pages\Products\**" />
+    <None Remove="Pages\Supplier\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Pages\POS\OrderHistory.razor.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="Pages\POS\ActiveOrders.razor" />
+    <Content Remove="Pages\POS\AddComplementaryReason.razor" />
+    <Content Remove="Pages\POS\CancelItemForm.razor" />
+    <Content Remove="Pages\POS\Cart.razor" />
+    <Content Remove="Pages\POS\OrderHistory.razor" />
+    <Content Remove="Pages\POS\OrderPrint.razor" />
+    <Content Remove="Pages\POS\OrderSummary.razor" />
+    <Content Remove="Pages\POS\PosRestaurant.razor" />
+    <Content Remove="wwwroot\localVehicleStore.js" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Pages\Counter.razor" />
+    <None Include="Pages\FetchData.razor" />
+    <None Include="Pages\Index.razor" />
+    <None Include="Pages\POS\Reports\PrintDayEndReport.razor" />
+    <None Include="Pages\POS\Reports\PrintItemSalesReport.razor" />
+    <None Include="Pages\POS\Reports\Reports.razor" />
+    <None Include="Shared\MainLayout.razor" />
+    <None Include="Shared\NavMenu.razor" />
+    <None Include="Shared\SurveyPrompt.razor" />
+    <None Include="wwwroot\css\open-iconic\fonts\icomoon.svg" />
+    <None Include="wwwroot\images\BlackBack.svg" />
+    <None Include="wwwroot\images\categories-pink.svg" />
+    <None Include="wwwroot\images\close.svg" />
+    <None Include="wwwroot\images\home-pink.svg" />
+    <None Include="wwwroot\images\icon-mob.svg" />
+    <None Include="wwwroot\images\icon-phone.svg" />
+    <None Include="wwwroot\images\icon-web.svg" />
+    <None Include="wwwroot\images\location.svg" />
+    <None Include="wwwroot\images\loyaltycard.svg" />
+    <None Include="wwwroot\images\no-image.svg" />
+    <None Include="wwwroot\images\r.svg" />
+    <None Include="wwwroot\images\shop-pink.svg" />
+    <None Include="wwwroot\images\sort-by.svg" />
+    <None Include="wwwroot\images\user-pink.svg" />
+    <None Include="wwwroot\images\whatspp.svg" />
+    <None Include="wwwroot\js\common.js" />
+    <None Include="wwwroot\js\countries.js" />
+    <None Include="wwwroot\js\index.min.js" />
+    <None Include="wwwroot\js\razorpay.js" />
+    <None Include="wwwroot\SampleExcel\ProductImportSample.xlsx" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Append.Blazor.Printing" Version="1.1.0" />
+    <PackageReference Include="Blazored.LocalStorage" Version="4.2.0" />
+    <PackageReference Include="Blazored.Toast" Version="3.2.2" />
+    <PackageReference Include="Blazored.Typeahead" Version="4.7.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="6.0.7" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="6.0.5" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="6.0.5" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="6.0.7" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.7" />
+    <PackageReference Include="MudBlazor" Version="6.0.13" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="Radzen.Blazor" Version="3.19.10" />
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Shared\GM.Store.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ServiceWorker Include="wwwroot\service-worker.js" PublishedContent="wwwroot\service-worker.published.js" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Assets\" />
+  </ItemGroup>
+
+</Project>

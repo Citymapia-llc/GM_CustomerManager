@@ -1,0 +1,83 @@
+﻿@*@page "/pos/orderhistory"*@
+@using Radzen
+@using Radzen.Blazor
+@*<link href="_content/Radzen.Blazor/css/standard.css" rel="stylesheet">
+<div class="left-sidebar">
+    <LeftPanel activeTab="2"></LeftPanel>
+</div>*@
+<link href="_content/Radzen.Blazor/css/standard.css" rel="stylesheet">
+<div class="content-with-right-panel" style="right:0">
+    <div class="flex items-center justify-between pos-top-search-area">
+        <h2 class="mb-0 font-medium">Order History</h2>
+    </div>
+    <div class="product-list-wrap-pos order-history-top" id="product-list">
+        @if (model.DateFrom != DateTime.MinValue)
+        {
+            <div class="row px-3 pb-3 history-datepicker">
+                <RadzenCard>
+                    <RadzenDatePicker @bind-Value=@model.DateFrom DateFormat="d" Max="@model.DateTo" Change=@(args => StartDateFilter(args, "DatePicker", "MM/dd/yyyy")) Class="w-100" />
+                </RadzenCard>
+            <RadzenCard>
+                <RadzenDatePicker @bind-Value=@model.DateTo DateFormat="d" Min="@model.DateFrom" Max="DateTime.Today" Change=@(args => EndDateFilter(args, "DatePicker", "MM/dd/yyyy")) Class="w-100" />
+            </RadzenCard>
+        </div>
+        }
+
+        <RadzenDataGrid style="height:720px" IsLoading=@isLoading Count="@count" Data="@orders" LoadData="@LoadData" AllowSorting="true" AllowPaging="true" PageSize="10" PagerHorizontalAlign="HorizontalAlign.Center" TItem="OrderHistoryResponse" ColumnWidth="200px" ShowPagingSummary="true"
+                        @bind-Value=@selectedOrder RowSelect=@RowSelect>
+            <EmptyTemplate>
+                <p style="color: lightgrey; font-size: 24px; text-align: center; margin: 2rem;">No records to display.</p>
+            </EmptyTemplate>
+            <Columns>
+                <RadzenDataGridColumn TItem="OrderHistoryResponse" Property="OrderId" Title="OrderId">
+                    <Template Context="order">
+                        @order.OrderId
+                        @switch (order.GatewayId)
+                        {
+                            case 2:
+                                <p class="m-0 text-info"> CCAvenue</p>
+                                break;
+                            case 3:
+                                <p class="m-0">PayPal</p>
+                                break;
+                            case 4:
+                                <p class="m-0 text-primary"> Instamojo</p>
+                                break;
+                            case 6:
+                                <p class="m-0 text-primary"> Razorpay</p>
+                                break;
+                            default:
+                                if (order.OrderType == 3)
+                                {
+                                    <small>Request Quote</small>
+                                }
+                                else if ((order.GatewayId == 0 || order.GatewayId == null) && order.OrderStatus != 1)
+                                {
+                                    <p class="m-0 text-success"> Cash on delivery</p>
+                                }
+                                break;
+                        }
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="OrderHistoryResponse" Property="OrderUserName" Title="Phone/Email" />
+                <RadzenDataGridColumn TItem="OrderHistoryResponse" Property="Amount" Title="Amount">
+                    <Template Context="order"><strong>@($"{businessModel.BusinessCurrencySymbol}{string.Format("{0:n}", order.Amount)}")</strong></Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="OrderHistoryResponse" Property="OrderedOn" Title="Order Date">
+                    <Template Context="order">@order.OrderedOn.GetValueOrDefault().AddMinutes(BusinessService.UserTimeSpan.Value.TotalMinutes)</Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="OrderHistoryResponse" Property="OrderStatusName" Title="Order Status" Sortable=false Filterable=false />
+                @* <RadzenDataGridColumn TItem="OrderHistoryResponse" Property="OrderStatus" Title="Order Status" Filterable=false>
+                    <Template Context="order"><RadzenBadge  BadgeStyle="BadgeStyle.Success" Text=@($"{order.OrderStatusName}") /></Template>
+                    </RadzenDataGridColumn>*@
+                <RadzenDataGridColumn Width="160px" TItem="OrderHistoryResponse" Property="Id" Title="Order Details" Sortable=false Filterable=false>
+                    <Template Context="data"><RadzenButton ButtonStyle="ButtonStyle.Info" Icon="info" Class="m-1" Click=@(() => orderDetailsById(data.Id)) Text="@("#"+data.Id.ToString())" /></Template>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGrid>
+    </div>
+</div>
+<OrderSummary @ref="orderSummary" OnorderSummaryClose="OrderDetailsClose"></OrderSummary>
+
+@code {
+}

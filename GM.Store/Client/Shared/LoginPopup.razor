@@ -1,0 +1,26 @@
+﻿@if (ShowConfirmation)
+{
+    <div class="modal fade fixed top-0 left-0 hidden w-full h-full outline-none overflow-x-hidden overflow-y-auto show" id="exampleModal-@Guid" tabindex="-1" aria-labelledby="exampleModalLabel" aria-modal="true" role="dialog" style="display: block;">
+        <div class="modal-dialog relative w-auto pointer-events-none">
+            <div class="modal-content border-none shadow-lg relative flex flex-col w-full pointer-events-auto bg-white bg-clip-padding rounded-md outline-none text-current">
+                <div _ngcontent-qvh-c49="" class="w-full text-sm text-primary-1">
+                    <div _ngcontent-qvh-c49="" class="px-5 py-5 relative">
+                        <span _ngcontent-qvh-c49="" class="font-semibold lg:text-lg 4xl:text-lg">Welcome Back! </span>
+                        <span _ngcontent-qvh-c49="" class="float-right close-pos">
+                            <button _ngcontent-qvh-c49="" mat-button="" type="button">
+                                <a @onclick="CloseModal" class="close" data-dismiss="modal" aria-label="close">&times;</a>
+                            </button>
+                        </span>
+                    </div><div _ngcontent-qvh-c49="" class="pb-6 pt-0 px-5 text-left">
+                        <p _ngcontent-qvh-c49="" class="text-sm !mb-5">Please login to continue.</p>
+                        <button _ngcontent-qvh-c49="" class="py-2 rounded-md cancel-button" style="border-radius: 6px; height: auto !important;"> Login </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+@if (showBackdrop)
+{
+    <div class="modal-backdrop fade show"></div>
+}

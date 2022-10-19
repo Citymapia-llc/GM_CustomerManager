@@ -1,0 +1,84 @@
+﻿<div class="content-with-right-panel" style="right:0">
+    <div class="flex items-center justify-between pos-top-search-area">
+        <h2 class="mb-0 font-medium">Sync Data</h2>
+    </div>
+
+    <div class="w-full">
+        <div class="product-list-wrap-pos order-history-top" id="product-list">
+            <div class="flex flex-wrap">
+                <div class="w-6/12 history-listing">
+                    @if (!string.IsNullOrWhiteSpace(errorMessage))
+                    {
+                        <p class="error">@errorMessage</p>
+                    }
+                    @if (model != null)
+                    {
+                        foreach (var item in model.OrderBy(a => a.ItemId))
+                        {
+                            <div>
+                                 <a class="@(activeTabId==item.ItemId?"active":"")" >
+                                @item.Name
+
+                                <span>
+                                    @if (item.LastSyncTime != DateTime.MinValue)
+                                    {
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 mr-1">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        @item.LastSyncTime
+                                    }
+                                    <a class="btn btn-third ml-4 " href="javascript:void(0)" @onclick="()=>SyncData(item)">
+                                        sync now
+                                        @if (isLoading && activeTabId == item.ItemId)
+                                        {
+                                            <div class="spinner-border text-primary ml-1" role="status">
+                                                <span class="visually-hidden">Loading...</span>
+                                            </div>
+                                        }
+                                     </a>
+                                </span>
+                                 </a>
+
+                            </div>
+                        }
+
+                    }
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private int activeTabId { get; set; }
+    private bool isLoading { get; set; }
+    private string errorMessage { get; set; }
+    private List<SyncModel> model { get; set; }
+    protected override async Task OnInitializedAsync()
+    {
+        var response = await this.SyncService.GetAllItemsToSyncAsync<ResponseData<List<SyncModel>>>();
+        if (response.Succeeded)
+        {
+            model = response.Model;
+        }
+    }
+    public async Task SyncData(SyncModel item)
+    {
+        errorMessage = null;
+        isLoading = true;
+        activeTabId = item.ItemId;
+        var response = await this.SyncService.SyncAsync<ResponseData<bool>>(item.ItemId);
+        if (!response.Succeeded)
+        {
+            errorMessage = "Error occured While syncing data! Please try again.";
+        }
+        else
+        {
+            item.LastSyncTime = DateTime.Now;
+        }
+        isLoading = false;
+        StateHasChanged();
+    }
+}

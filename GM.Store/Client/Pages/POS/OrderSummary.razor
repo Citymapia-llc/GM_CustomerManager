@@ -1,0 +1,268 @@
+﻿@using Append.Blazor.Printing;
+@inject IPrintingService PrintingService
+
+@if (ShowConfirmation)
+{
+    <div class="modal fade fixed top-0 left-0 hidden w-full h-full outline-none overflow-x-hidden overflow-y-auto show order-history-pop"
+     id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true" style="display: block; padding-left: 0px;">
+
+        <div class="modal-dialog modal-dialog-centered relative w-auto pointer-events-none">
+            <div class="modal-content border-none shadow-lg relative flex flex-col w-full pointer-events-auto bg-white bg-clip-padding rounded-md outline-none text-current">
+                <div class="w-full text-sm font-normal">
+                    <div class="p-3 bg-primary-12">
+                        <span class="text-base font-semibold text-dark-1">Invoice Summary</span>
+                        <span class="float-right">
+                            <button type="button"
+                                class="btn-close box-content w-4 h-4 p-1 text-black border-none rounded-none opacity-50 focus:shadow-none focus:outline-none focus:opacity-100 hover:text-black hover:opacity-75 hover:no-underline"
+                                @onclick="CloseSummary" aria-label="Close"></button>
+                        </span>
+                    </div>
+                    <div class="ng-star-inserted" style="">
+                        <div class="w-full p-4">
+                            <div class="flex space-x-2 mb-3">
+                                <div class="w-3/5 text-base font-semibold">
+                                    <label class="text-xs panel-header text-dark-1 block font-normal"> Order No : </label><span class="text-sm font-normal">@model.OrdersId</span>
+                                </div>
+                                <div class="w-2/5 text-xs">
+                                    <label class="text-xs panel-header text-dark-1 block font-normal">Ordered On :</label><span class="text-sm font-medium">@model.OrderedOn.GetValueOrDefault().ToString("MMM dd,yyyy")</span>
+                                </div>
+                                @if (model.OrderDetails != null && !string.IsNullOrEmpty(model.OrderDetails.Select(a => a.SectionName).FirstOrDefault()))
+                                {
+                                    <div class="w-2/5 text-xs">
+                                        <label class="text-xs panel-header text-dark-1 block font-normal">Section :</label><span class="text-sm font-medium">@model.OrderDetails.Select(a => a.SectionName).FirstOrDefault()</span>
+                                    </div>
+                                }
+                                @if (model.OrderDetails != null && !string.IsNullOrEmpty(model.OrderDetails.Select(a => a.TableNumber).FirstOrDefault()))
+                                {
+                                    <div class="w-2/5 text-xs">
+                                        <label class="text-xs panel-header text-dark-1 block font-normal">Table No :</label><span class="text-sm font-medium">@model.OrderDetails.Select(a => a.TableNumber).FirstOrDefault()</span>
+                                    </div>
+                                }
+                                <div class="w-2/5 text-sm flex items-center justify-end">
+                                    @if (isFromHistory)
+                                    {
+                                        <button @onclick=@(() =>PrintDetailsById(model.Id))>
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                                            </svg>Print
+                                        </button>
+                                    }else{
+
+                                        <button @onclick=@(() =>PrintDetails(model.LocalOrderId))>
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                                            </svg>Print
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+                            @if (!string.IsNullOrEmpty(model.ShippingAddress.Name) || !string.IsNullOrEmpty(model.ShippingAddress.Address) || !string.IsNullOrEmpty(model.ShippingAddress.PhoneNumber))
+                            {
+                                <div class="flex mt-4 mb-4 space-x-2 ng-star-inserted">
+                                    <div class="w-3/5 leading-6">
+                                        <label class="text-xs panel-header text-dark-1">Delivery Address</label><br />
+                                        @if (!string.IsNullOrEmpty(model.ShippingAddress.Name))
+                                        {
+                                            <span>@model.ShippingAddress.Name</span>
+
+                                            <br />
+                                        }
+                                        @if (!string.IsNullOrEmpty(model.ShippingAddress.Address))
+                                        {
+                                            <span class="ng-star-inserted">@model.ShippingAddress.Address,</span>
+
+                                            <br />
+                                        }
+                                        @if (!string.IsNullOrEmpty(model.ShippingAddress.Area))
+                                        {
+                                            <span class="ng-star-inserted"> @model.ShippingAddress.Area,</span>
+                                        }
+                                        @if (!string.IsNullOrEmpty(model.ShippingAddress.City))
+                                        {
+                                            <span class="ng-star-inserted"> @model.ShippingAddress.City,</span>
+                                        }
+                                        @if (!string.IsNullOrEmpty(model.ShippingAddress.State))
+                                        {
+                                            <span class="ng-star-inserted"> @model.ShippingAddress.State,</span>
+                                        }
+                                        @if (!string.IsNullOrEmpty(model.ShippingAddress.Zip))
+                                        {
+                                            <span class="ng-star-inserted"> Pin: @model.ShippingAddress.Zip</span>
+                                        }
+                                    </div>
+                                    @if (!string.IsNullOrEmpty(model.ShippingAddress.PhoneNumber))
+                                    {
+                                        <div class="w-2/5">
+                                            <label class="text-xs panel-header">Verified Mobile</label>
+                                            <p>@model.ShippingAddress.PhoneNumber</p>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            <div class="w-full overflow-x-auto">
+                                <table class="w-full">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-base font-semibold text-left text-dark-1">Description</th>
+                                            <th class="font-semibold text-dark-1">Qty</th>
+                                            <th class="font-semibold text-dark-1">Price</th>
+                                            <th class="font-semibold text-dark-1 text-right">Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var item in model.OrderDetails)
+                                        {
+                                            <tr class="ng-star-inserted">
+                                                <td>
+                                                    <div class="flex items-center w-[34rem]">
+                                                        <img onerror="this.src='/images/no-image.svg'" class="w-[40px] mr-2" src="@item.ImageUrl" />
+                                                        <div class="item-name">
+                                                            @item.ProductName
+                                                            @if (item.OrderStatus == 4)
+                                                            {
+                                                                <p class="text-red-1">Cancelled</p>
+                                                            }
+                                                            @if (item.IsComplementary)
+                                                            {
+                                                                <p class="text-blue-700 mb-0">Complementary</p>
+                                                                @if (!string.IsNullOrEmpty(item.ComplementaryReason))
+                                                                {
+                                                                    <p class="text-red-1">Reason : @item.ComplementaryReason</p>
+                                                                }
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td class="text-center text-dark-1 !align-middle">@item.Quantity</td>
+                                                <td class="text-center text-dark-1 !align-middle">@businessModel.BusinessCurrencySymbol@item.UnitPrice</td>
+                                                <td class="font-semibold text-dark-1 text-right !align-middle">@businessModel.BusinessCurrencySymbol@(item.TotalPrice??0)</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                                @if (model.Remark != null)
+                                {
+                                    <div class="mt-3">
+                                        <h6><b>Remarks</b></h6>
+                                        <p class="mb-0">@model.Remark</p>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                        <div class="py-4 total-card border-b-1 bg-primary-13">
+                            @if (model.Discount != null && model.Discount > 0)
+                            {
+                                var discountAmount = (model.OrderDetails.Sum(a => a.TotalPrice) * model.Discount) / 100;
+                                <div class="!text-dark-1 font-medium text-sm">Discount (@model.Discount%)</div>
+                                <div class="text-right !text-dark-1 text-sm font-medium">@businessModel.BusinessCurrencySymbol@Math.Round(discountAmount.Value, 0, MidpointRounding.AwayFromZero)</div>
+                            }
+                            @if (model.DiscountAmount != null && model.DiscountAmount > 0)
+                            {
+                                <div class="!text-dark-1 font-medium text-sm">Discount Amount</div>
+                                <div class="text-right !text-dark-1 text-sm font-medium">@businessModel.BusinessCurrencySymbol@model.DiscountAmount</div>
+                            }
+                            @if (model.DeliveryCharge != null)
+                            {
+                                <div class="!text-dark-1 font-medium text-sm">Delivery Charge</div>
+                                <div class="text-right !text-dark-1 text-sm font-medium">@businessModel.BusinessCurrencySymbol@model.DeliveryCharge</div>
+                            }
+                            else
+                            {
+                                <div class="!text-dark-1 font-medium text-sm">Delivery Charge</div>
+                                <div class="text-right !text-dark-1 text-sm font-medium text-[#48B926] font-semibold">Free</div>
+                            }
+                            <div class="!text-dark-1 font-semibold text-base">Total</div>
+                            <div class="text-right !text-dark-1 text-base font-semibold">@businessModel.BusinessCurrencySymbol@model.Amount</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+    @* <form id="printable-form">
+            <div class="form-group">
+                <label for="exampleInputEmail1">Email address</label>
+                <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Enter email">
+                <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
+            </div>
+            <div class="form-group">
+                <label for="exampleInputPassword1">Password</label>
+                <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password">
+            </div>
+            <div class="form-check">
+                <input type="checkbox" class="form-check-input" id="exampleCheck1">
+                <label class="form-check-label" for="exampleCheck1">Check me out</label>
+            </div>
+        </form>*@
+}
+
+@*@if(OrderId!=0)
+{*@
+<OrderPrint @ref="orderPrint" OrderId="LocalOrderId"></OrderPrint>
+@*}*@
+@code {
+    private bool ShowConfirmation { get; set; }
+    private OrderSuccessModel model;
+    private OrderPrint orderPrint;
+    public BusinessModel businessModel { get; set; }
+    public bool isFromHistory { get; set; }
+    [Parameter]
+    public EventCallback<bool> OnorderSummaryClose { get; set; }
+    private string LocalOrderId { get; set; }
+
+    public async Task Show(PaymentRequestModel reqest)
+    {
+        businessModel = BusinessService.StoreDetails;// await this.localStorage.GetItemAsync<BusinessModel>("storeDetails", null);
+        var responseCODData = await this.CartService.PaymentSuccessAsync(reqest);
+        if (responseCODData != null && responseCODData.Model != null)
+        {
+            model = responseCODData.Model;
+            ShowConfirmation = true;
+            StateHasChanged();
+        }
+    }
+    public void CloseSummary()
+    {
+        ShowConfirmation = false;
+        OnorderSummaryClose.InvokeAsync(true);
+        StateHasChanged();
+    }
+    public async Task ShowOrderDetal(string localOrderId)
+    {
+        businessModel = BusinessService.StoreDetails;
+        var response = await this.OrderHistoryService.GetOrderDetailAsync<ResponseData<OrderSuccessModel>>(localOrderId);
+        if (response.Succeeded)
+        {
+            model = response.Model;
+            ShowConfirmation = true;
+            StateHasChanged();
+        }
+    }
+    public async Task ShowOrderDetailById(int orderId)
+    {
+        businessModel = BusinessService.StoreDetails;
+        var response = await this.OrderHistoryService.GetOrderDetailByIdAsync<ResponseData<OrderSuccessModel>>(orderId);
+        if (response.Succeeded)
+        {
+            isFromHistory = true;
+            model = response.Model;
+            ShowConfirmation = true;
+            StateHasChanged();
+        }
+    }
+
+    public async Task PrintDetails(string localOrderId)
+    {
+        LocalOrderId = localOrderId;
+        await orderPrint.OnloadAsync(localOrderId);
+        StateHasChanged();
+    }
+
+    public async Task PrintDetailsById(int orderId)
+    {
+        await orderPrint.OnloadByOrderIdAsync(orderId);
+        StateHasChanged();
+    }
+}

@@ -1,0 +1,485 @@
+﻿@*@page "/pos/reports"*@
+@using Newtonsoft.Json
+@using Newtonsoft.Json.Linq
+@using System.Text.Json
+@using Radzen.Blazor
+@*<link href="_content/Radzen.Blazor/css/standard.css" rel="stylesheet">
+<div class="left-sidebar">
+    <LeftPanel activeTab="3"></LeftPanel>
+</div>*@
+<link href="_content/Radzen.Blazor/css/standard.css" rel="stylesheet">
+<div class="content-with-right-panel" style="right:0">
+    <div class="flex items-center justify-between pos-top-search-area">
+        <h2 class="mb-0 font-medium">Reports</h2>
+    </div>
+
+    <div class="w-full">
+        <div class="product-list-wrap-pos order-history-top" id="product-list">
+            <div class="flex flex-wrap">
+                <div class="w-2/12 history-listing">
+                    <div>
+                        <a class="@(ActiveReportId==-1?"active":"")" href="javascript:void(0)" @onclick="()=>ChangeReport(-1)">Day End Report</a>
+                    </div>
+                    <div>
+                        <a class="@(ActiveReportId==-2?"active":"")" href="javascript:void(0)" @onclick="()=>ChangeReport(-2)">Item Sales Report</a>
+                    </div>
+                    <div>
+                        <a class="@(ActiveReportId==-3?"active":"")" href="javascript:void(0)" @onclick="()=>ChangeReport(-3)">Complementary Item Report</a>
+                    </div>
+                    <div>
+                        <a class="@(ActiveReportId==-4?"active":"")" href="javascript:void(0)" @onclick="()=>ChangeReport(-4)">Void Item Report</a>
+                    </div>
+                    @if (model != null)
+                    {
+                        foreach (var item in model)
+                        {
+                            <div>
+                                <a class="@(ActiveReportId==item.Id?"active":"")" href="javascript:void(0)" @onclick="()=>ChangeReport(item.Id)">@item.Title</a>
+                            </div>
+                        }
+                    }
+                </div>
+                @if (ActiveReportId == -1)
+                {
+                    @if (DayEndReportModel != null)
+                    {
+                        <div class="w-10/12 reports-wrap">
+                            <div class="flex justify-content-between history-datepicker items-center max-w-[600px]">
+                                @if (CustomReportRequest != null && CustomReportRequest.DateFrom != DateTime.MinValue)
+                                {
+                                    <div class="row p-3 history-datepicker">
+                                        <RadzenCard>
+                                            <RadzenDatePicker ShowTime="true" @bind-Value=@reportRequest.DateTo Min="@reportRequest.DateFrom" Max="@reportRequest.DateTo" HourFormat="12" Change=@(args => EndDateFilter(args)) Class="w-100" />
+                                        </RadzenCard>
+                                    </div>
+                                    @* <div class="row p-3 history-datepicker">
+                        <RadzenCard>
+                        <RadzenDatePicker @bind-Value=@CustomReportRequest.DateFrom DateFormat="d" Max="@CustomReportRequest.DateTo" Change=@(args => StartDateFilter(args)) Class="w-100" />
+                        </RadzenCard>
+                        <RadzenCard>
+                        <RadzenDatePicker @bind-Value=@CustomReportRequest.DateTo DateFormat="d" Min="@CustomReportRequest.DateFrom" Max="DateTime.Today" Change=@(args => EndDateFilter(args)) Class="w-100" />
+                        </RadzenCard>
+                        </div>*@
+                                }
+                                <div class="text-sm flex items-center justify-end">
+                                    <button class="btn-black" @onclick=@(() =>PrintDetails(-1))>
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                                        </svg>Print
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="invoice-box reports-invoice-wrap" id="printable-form-day-end">
+                                <table cellpadding="0" cellspacing="0" class="border-tr-none">
+                                    <tr class="heading">
+                                        <td colspan="5" class="text-center">DETAILED DAY END REPORT</td>
+                                    </tr>
+                                    <tr class="details">
+                                        <td class="pb-0">Day Opening Date :</td>
+
+                                        <td class="pb-0">
+                                            @DateTime.Now.ToString("dd/MM/yyyy")
+                                            @* <span>@DateTime.Now.ToString("hh:mm tt")</span>*@
+                                        </td>
+                                    </tr>
+                                    @* <tr class="heading">
+                            <td colspan="5" class="text-center">COUNTER DETAILS</td>
+                            </tr>
+                            <tr class="details">
+                            <td class="pb-0">Opening Date :</td>
+
+                            <td class="pb-0">17/06/2022</td>
+                            </tr>
+                            <tr class="details">
+                            <td class="pb-0">Opening Time :</td>
+
+                            <td class="pb-0">07:16:09</td>
+                            </tr>
+                            <tr class="details">
+                            <td class="pb-0">Closing Date :</td>
+
+                            <td class="pb-0">18/06/2022</td>
+                            </tr>
+                            <tr class="details">
+                            <td class="pb-0">Closing Time :</td>
+
+                            <td class="pb-0">00:39:36</td>
+                            </tr>
+                            <tr class="details">
+                            <td class="pb-0">Employee :</td>
+
+                            <td class="pb-0">Giri</td>
+                            </tr>
+                            <tr class="details">
+                            <td class="pb-0"><strong>Opening Bal :</strong></td>
+
+                            <td class="pb-0"><strong>500</strong></td>
+                            </tr>*@
+                                    <tr class="heading">
+                                        <td colspan="5" class="text-center">SALES DETAILS</td>
+                                    </tr>
+
+                                    <tr class="details">
+                                        <td class="pb-0">Cash Sale :</td>
+
+                                        <td class="pb-0">@DayEndReportModel.CashSale</td>
+                                    </tr>
+                                    <tr class="details">
+                                        <td class="pb-0">Credit Receipt :</td>
+
+                                        <td class="pb-0">
+                                            @DayEndReportModel.CreditSale
+                                        </td>
+                                    </tr>
+                                    <tr class="details">
+                                        <td class="pb-0">Credit Card Sale :</td>
+
+                                        <td class="pb-0">@DayEndReportModel.CardSale</td>
+                                    </tr>
+                                    <tr class="item subtotal-billview">
+                                        <td class="hd-two">Net Sale</td>
+                                        <td>@DayEndReportModel.TotalSale</td>
+                                    </tr>
+                                    <tr class="heading">
+                                        <td colspan="5" class="text-center">CASH DETAILS</td>
+                                    </tr>
+                                    <tr class="details">
+                                        <td class="pb-0">Cash Sale (+):</td>
+
+                                        <td class="pb-0">@DayEndReportModel.CashSale</td>
+                                    </tr>
+                                    <tr class="details">
+                                        <td class="pb-0">Credit Receipt (+):</td>
+
+                                        <td class="pb-0">
+                                            0
+                                        </td>
+                                    </tr>
+                                    <tr class="details">
+                                        <td class="pb-0">Cash Payments (-):</td>
+
+                                        <td class="pb-0">0</td>
+                                    </tr>
+                                    <tr class="item subtotal-billview">
+                                        <td class="hd-two">Net Cash</td>
+                                        <td>@DayEndReportModel.CashSale</td>
+                                    </tr>
+                                    <tr class="heading">
+                                        <td colspan="5" class="text-center">CARD DETAILS</td>
+                                    </tr>
+                                    <tr class="details">
+                                        <td class="pb-0">Credit Card Sale :</td>
+
+                                        <td class="pb-0">
+                                            @DayEndReportModel.CardSale
+                                        </td>
+                                    </tr>
+                                    @* <tr class="details">
+                            <td class="pb-0">Crdt Stlmnt-Card:</td>
+
+                            <td class="pb-0">0.00</td>
+                            </tr>*@
+
+                                    <tr class="item subtotal-billview">
+                                        <td class="hd-two">Net Credit Card:</td>
+                                        <td>@DayEndReportModel.CardSale</td>
+                                    </tr>
+                                </table>
+                                <hr>
+                                <table cellpadding="0" cellspacing="0">
+
+                                    <tr class="item subtotal-billview">
+                                        <td class="hd-two">All Counter Total Sale :</td>
+                                        <td>@DayEndReportModel.TotalSale</td>
+                                    </tr>
+                                    <tr class="item subtotal-billview">
+                                        <td class="hd-two">All Counter Total Cash :</td>
+                                        <td>@DayEndReportModel.CashSale</td>
+                                    </tr>
+                                    <tr class="item subtotal-billview">
+                                        <td class="hd-two">All Counter Total Card :</td>
+                                        <td>@DayEndReportModel.CardSale</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        <PrintDayEndReport @ref="printDayEndReport" DayEndReportModel="DayEndReportModel"></PrintDayEndReport>
+                    }
+                    else
+                    {
+                        <p>No Dta found</p>
+                    }
+                }
+                else if (ActiveReportId == -2)
+                {
+                    <div class="w-10/12 reports-wrap">
+                        <div class="flex justify-content-between history-datepicker items-center max-w-[600px]">
+                            @if (CustomReportRequest != null && CustomReportRequest.DateFrom != DateTime.MinValue)
+                            {
+                                <div class="row p-3 history-datepicker">
+                                        <RadzenCard>
+                                            <RadzenDatePicker ShowTime="true" @bind-Value=@CustomReportRequest.DateTo Max="@CustomReportRequest.DateTo" HourFormat="12" Change=@(args => StartDateFilter(args)) Class="w-100" />
+                                        </RadzenCard>
+                                    </div>
+                                @*<div class="row p-3 history-datepicker">
+                                    <RadzenCard>
+                                        <RadzenDatePicker @bind-Value=@CustomReportRequest.DateFrom DateFormat="d" Max="@CustomReportRequest.DateTo" Change=@(args => StartDateFilter(args)) Class="w-100" />
+                                    </RadzenCard>
+                                    <RadzenCard>
+                                        <RadzenDatePicker @bind-Value=@CustomReportRequest.DateTo DateFormat="d" Min="@CustomReportRequest.DateFrom" Max="DateTime.Today" Change=@(args => EndDateFilter(args)) Class="w-100" />
+                                    </RadzenCard>
+                                </div>*@
+                            }
+                            @if (ItemSalesReportModel != null && ItemSalesReportModel.Count() > 0)
+                            {
+                                <button class="btn-black" @onclick=@(() =>PrintDetails(-2))>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                                    </svg>Print
+                                </button>
+                            }
+                        </div>
+                        @if (ItemSalesReportModel != null && ItemSalesReportModel.Count() > 0)
+                        {
+                            <div class="invoice-box reports-invoice-wrap">
+                                <table cellpadding="0" cellspacing="0" class="border-tr-none">
+                                    <tr class="heading">
+                                        <td colspan="5" class="text-center">ITEM SALES REPORT</td>
+                                    </tr>
+                                </table>
+                                <table cellpadding="0" cellspacing="0">
+                                    <tr class="heading new-items-head">
+                                        <td>Item Name</td>
+                                        <td class="text-center">Qty</td>
+                                        <td class="text-right">Amount</td>
+                                    </tr>
+                                    @foreach (var item in ItemSalesReportModel)
+                                    {
+                                        <tr class="item sales">
+                                            <td>@item.Name</td>
+                                            <td class="hd-two text-center">@item.TotalQuantity</td>
+                                            <td class="text-right">@item.TotalPrice</td>
+                                        </tr>
+                                    }
+
+                                </table>
+                                <hr>
+                                <table cellpadding="0" cellspacing="0">
+                                    <tr class="item subtotal-billview">
+                                        <td class="hd-two">Total Sale :</td>
+                                        <td>@ItemSalesReportModel.Sum(a=>a.TotalPrice)</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <PrintItemSalesReport @ref="printItemSalesReport" ItemSalesReportModel="ItemSalesReportModel"></PrintItemSalesReport>
+                        }
+                        else
+                        {
+                            <p>No Data Found!</p>
+                        }
+                    </div>
+                }
+                else if (ActiveReportId == -3)
+                {
+                    <div class="w-10/12 reports-wrap">
+                        <div class="flex justify-content-between history-datepicker items-center max-w-[600px]">
+                            @if (CustomReportRequest != null && CustomReportRequest.DateFrom != DateTime.MinValue)
+                            {
+                              @*  <div class="row p-3 history-datepicker">
+                                    <RadzenCard>
+                                        <RadzenDatePicker @bind-Value=@CustomReportRequest.DateFrom DateFormat="d" Max="@CustomReportRequest.DateTo" Change=@(args => StartDateFilter(args)) Class="w-100" />
+                                    </RadzenCard>
+                                    <RadzenCard>
+                                        <RadzenDatePicker @bind-Value=@CustomReportRequest.DateTo DateFormat="d" Min="@CustomReportRequest.DateFrom" Max="DateTime.Today" Change=@(args => EndDateFilter(args)) Class="w-100" />
+                                    </RadzenCard>
+                                </div>*@
+                                <div class="row p-3 history-datepicker">
+                                        <RadzenCard>
+                                            <RadzenDatePicker ShowTime="true" @bind-Value=@CustomReportRequest.DateTo Max="@CustomReportRequest.DateTo" HourFormat="12" Change=@(args => StartDateFilter(args)) Class="w-100" />
+                                        </RadzenCard>
+                                    </div>
+                            }
+                            @if (ItemSalesReportModel != null && ItemSalesReportModel.Count() > 0)
+                            {
+                                <button class="btn-black" @onclick=@(() =>PrintDetails(-3))>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                                    </svg>Print
+                                </button>
+                            }
+                        </div>
+                        @if (ItemSalesReportModel != null && ItemSalesReportModel.Count() > 0)
+                        {
+                            <div class="invoice-box reports-invoice-wrap">
+                                <table cellpadding="0" cellspacing="0" class="border-tr-none">
+                                    <tr class="heading">
+                                        <td colspan="5" class="text-center">COMPLEMENTARY ITEM REPORT</td>
+                                    </tr>
+                                </table>
+                                <table cellpadding="0" cellspacing="0">
+                                    <tr class="heading new-items-head">
+                                        <td>Item Name</td>
+                                        <td class="text-right">Qty</td>
+                                    </tr>
+                                    @foreach (var item in ItemSalesReportModel)
+                                    {
+                                        <tr class="item sales">
+                                            <td>@item.Name</td>
+                                            <td class="text-right">@item.TotalQuantity</td>
+                                        </tr>
+                                    }
+                                </table>
+                                <hr>
+                                <table cellpadding="0" cellspacing="0">
+                                    <tr class="item subtotal-billview">
+                                        <td class="hd-two">Total Quantity :</td>
+                                        <td>@ItemSalesReportModel.Sum(a=>a.TotalQuantity)</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <PrintComplementaryItemReport @ref="printComplementaryItemReport" ComplementaryItemReportModel="ItemSalesReportModel"></PrintComplementaryItemReport>
+                        }
+                        else
+                        {
+                            <p>No Data Found!</p>
+                        }
+                    </div>
+                }
+
+                else if (ActiveReportId == -4)
+                {
+                    <div class="w-10/12 reports-wrap">
+                        <div class="flex justify-content-between history-datepicker items-center max-w-[600px]">
+                            @if (CustomReportRequest != null && CustomReportRequest.DateFrom != DateTime.MinValue)
+                            {
+                               @* <div class="row p-3 history-datepicker">
+                                    <RadzenCard>
+                                        <RadzenDatePicker @bind-Value=@CustomReportRequest.DateFrom DateFormat="d" Max="@CustomReportRequest.DateTo" Change=@(args => StartDateFilter(args)) Class="w-100" />
+                                    </RadzenCard>
+                                    <RadzenCard>
+                                        <RadzenDatePicker @bind-Value=@CustomReportRequest.DateTo DateFormat="d" Min="@CustomReportRequest.DateFrom" Max="DateTime.Today" Change=@(args => EndDateFilter(args)) Class="w-100" />
+                                    </RadzenCard>
+                                </div>*@
+                                <div class="row p-3 history-datepicker">
+                                        <RadzenCard>
+                                            <RadzenDatePicker ShowTime="true" @bind-Value=@CustomReportRequest.DateTo Max="@CustomReportRequest.DateTo" HourFormat="12" Change=@(args => StartDateFilter(args)) Class="w-100" />
+                                        </RadzenCard>
+                                    </div>
+                            }
+                            @if (ItemSalesReportModel != null && ItemSalesReportModel.Count() > 0)
+                            {
+                                <button class="btn-black" @onclick=@(() =>PrintDetails(-4))>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                                    </svg>Print
+                                </button>
+                            }
+                        </div>
+                        @if (ItemSalesReportModel != null && ItemSalesReportModel.Count() > 0)
+                        {
+                            <div class="invoice-box reports-invoice-wrap">
+                                <table cellpadding="0" cellspacing="0" class="border-tr-none">
+                                    <tr class="heading">
+                                        <td colspan="5" class="text-center">VOID ITEM REPORT</td>
+                                    </tr>
+                                </table>
+                                <table cellpadding="0" cellspacing="0">
+                                    <tr class="heading new-items-head">
+                                        <td>Item Name</td>
+                                        <td class="text-center">Qty</td>
+                                        <td class="text-right">Amount</td>
+                                    </tr>
+                                    @foreach (var item in ItemSalesReportModel)
+                                    {
+                                        <tr class="item sales">
+                                            <td>@item.Name</td>
+                                            <td class="hd-two text-center">@item.TotalQuantity</td>
+                                            <td class="text-right">@item.TotalPrice</td>
+                                        </tr>
+                                    }
+
+                                </table>
+                                <hr>
+                                <table cellpadding="0" cellspacing="0">
+                                    <tr class="item subtotal-billview">
+                                        <td class="hd-two">Total :</td>
+                                        <td>@ItemSalesReportModel.Sum(a=>a.TotalPrice)</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <PrintVoidItemReport @ref="printVoidItemReport" VoidItemReportModel="ItemSalesReportModel"></PrintVoidItemReport>
+                        }
+                        else
+                        {
+                            <p>No Data Found!</p>
+                        }
+                    </div>
+                }
+                else
+                {
+
+                    <div class="w-10/12 reports-wrap">
+                        <div class="row p-3 history-datepicker">
+                            @if (reportRequest != null && reportRequest.DateFrom != DateTime.MinValue)
+                            {
+                                <div class="row p-3 history-datepicker">
+                                    <RadzenCard>
+                                        <RadzenDatePicker @bind-Value=@reportRequest.DateFrom DateFormat="d" Max="@reportRequest.DateTo" Change=@(args => StartDateFilter(args)) Class="w-100" />
+                                    </RadzenCard>
+                                    <RadzenCard>
+                                        <RadzenDatePicker @bind-Value=@reportRequest.DateTo DateFormat="d" Min="@reportRequest.DateFrom" Max="DateTime.Today" Change=@(args => EndDateFilter(args)) Class="w-100" />
+                                    </RadzenCard>
+                                </div>
+                            }
+                        </div>
+                        <RadzenDataGrid AllowFiltering="false" AllowPaging="true" PageSize="100" AllowSorting="false" Data="@data" Count="@count" LoadData="@LoadData">
+                            <EmptyTemplate>
+                                <p style="color: lightgrey; font-size: 24px; text-align: center; margin: 2rem;">No records to display.</p>
+                            </EmptyTemplate>
+                            <Columns>
+                                @if (columns != null)
+                                {
+                                    foreach (var key in columns.Keys)
+                                    {
+                                    <RadzenDataGridColumn TItem="Dictionary<string, object>" Property=@key Title="@key">
+                                        <Template Context="data">
+                                            @((data as IDictionary<string, object>)[key])
+                                        </Template>
+                                    </RadzenDataGridColumn>
+                                    }
+                                }
+                        </Columns>
+                    </RadzenDataGrid>
+                </div>
+                }
+            </div>
+        </div>
+    </div>
+
+</div>
+@code {
+    private PrintDayEndReport printDayEndReport;
+    private PrintItemSalesReport printItemSalesReport;
+    private PrintComplementaryItemReport printComplementaryItemReport;
+    private PrintVoidItemReport printVoidItemReport;
+    public async Task PrintDetails(int reportId)
+    {
+        if (reportId == -1)
+        {
+            await printDayEndReport.OnloadAsync(DayEndReportModel);
+        }
+        else if (reportId == -2)
+        {
+            await printItemSalesReport.OnloadAsync(ItemSalesReportModel);
+        }
+        else if (reportId == -3)
+        {
+            await printComplementaryItemReport.OnloadAsync(ItemSalesReportModel);
+        }
+        else if (reportId == -4)
+        {
+            await printVoidItemReport.OnloadAsync(ItemSalesReportModel);
+        }
+        StateHasChanged();
+    }
+}

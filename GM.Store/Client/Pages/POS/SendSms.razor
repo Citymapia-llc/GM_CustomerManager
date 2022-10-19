@@ -1,0 +1,71 @@
+﻿
+
+@if (ShowConfirmation)
+{
+    <div class="modal fade fixed top-0 left-0 hidden w-full h-full outline-none overflow-x-hidden overflow-y-auto show order-history-pop"
+     id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true" style="display: block; padding-left: 0px;">
+
+        <div class="modal-dialog modal-dialog-centered relative w-auto pointer-events-none">
+            <div class="modal-content border-none shadow-lg relative flex flex-col w-full pointer-events-auto bg-white bg-clip-padding rounded-md outline-none text-current">
+                <div class="w-full text-sm font-normal">
+                    <div class="p-3 bg-primary-12">
+                        <span class="text-base font-semibold text-dark-1">Send Sms</span>
+                        <span class="float-right">
+                            <button type="button"
+                                class="btn-close box-content w-4 h-4 p-1 text-black border-none rounded-none opacity-50 focus:shadow-none focus:outline-none focus:opacity-100 hover:text-black hover:opacity-75 hover:no-underline"
+                                @onclick="CloseSummary" aria-label="Close"></button>
+                        </span>
+                    </div>
+                    <div class="ng-star-inserted" style="">
+                        <div class="w-full p-4">
+                            @if(receipt!=null)
+                            {
+                                <h4>Phone Number: @receipt.PhoneNumber</h4>
+                            }
+                            @if(model!=null)
+                            {
+                                foreach (var item in model)
+                                {
+                                   <p>@item.Template</p> 
+                                }
+                            }
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+}
+
+@code {
+    private bool ShowConfirmation { get; set; }
+    private List<SmsTemplateModel> model;
+    public BusinessModel businessModel { get; set; }
+    public ReceiptModel receipt { get; set; }
+    public bool isFromHistory { get; set; }
+    [Parameter]
+    public EventCallback<bool> OnorderSummaryClose { get; set; }
+    private string LocalOrderId { get; set; }
+
+    public async Task Show(ReceiptModel request)
+    {
+        receipt = request;
+        businessModel = BusinessService.StoreDetails;
+        var response = await this.SMSService.GetAllTempate();
+        if (response != null && response.Model != null)
+        {
+            model = response.Model;
+            ShowConfirmation = true;
+            StateHasChanged();
+        }
+    }
+    public void CloseSummary()
+    {
+        ShowConfirmation = false;
+        OnorderSummaryClose.InvokeAsync(true);
+        StateHasChanged();
+    }
+   
+}

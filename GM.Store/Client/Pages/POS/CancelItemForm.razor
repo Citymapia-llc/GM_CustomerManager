@@ -1,0 +1,62 @@
+﻿@if (ShowConfirmation)
+{
+    <div class="modal fade fixed top-0 left-0 hidden w-full h-full outline-none overflow-x-hidden overflow-y-auto show"
+     id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true" style="display: block; padding-left: 0px;">
+        <div class="modal-dialog modal-dialog-centered relative w-auto pointer-events-none">
+            <div class="modal-content border-none shadow-lg relative flex flex-col w-full pointer-events-auto bg-white bg-clip-padding rounded-md outline-none text-current">
+                <div class="modal-header flex flex-shrink-0 items-center justify-between p-4 pb-1 rounded-t-md">
+                    <h5 class="text-xl font-medium leading-normal text-gray-800" id="exampleModalLabel">Cancel Item</h5>
+                </div>
+                <div class="modal-body relative py-0 px-4">
+                    <p class="my-2 text-sm text-dark-2">
+                        Are you sure you want to cancel this item?
+                    </p>
+                     <p class="my-2 text-sm text-dark-2">
+                        <textarea class="form-control mb-3 text-sm h-auto rounded-lg" rows="5" placeholder="Remarks" @bind="@cancelRequest.Remark" @bind:event="oninput"></textarea>
+                    </p>
+                    @if(warnMesage!=null)
+                    {
+                        <p class="error"> @warnMesage</p>
+                    }
+                </div>
+                <div class="modal-footer flex flex-shrink-0 flex-wrap items-center justify-end p-4 pt-0 rounded-b-md">
+                    <div class="mt-4 w-full">
+                        <button color="primary" class="btn-green" type="button" @onclick="() => OnConfirmationChange(true)"> Yes </button>
+                        <button color="accent" class="cancel-button mr-2" type="button" @onclick="() => OnConfirmationChange(false)"> No </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+}
+
+@code {
+    protected bool ShowConfirmation { get; set; }
+    protected CancelItemRequestModel cancelRequest { get; set; }
+    protected string warnMesage { get; set; }
+    public void Show(CancelItemRequestModel req)
+    {
+        ShowConfirmation = true;
+        warnMesage = null;
+        cancelRequest = req;
+        StateHasChanged();
+    }
+    [Parameter]
+    public EventCallback<CancelItemRequestModel> ConfirmationChanged { get; set; }
+    protected async Task OnConfirmationChange(bool value)
+    {
+
+        warnMesage = null;
+        if (string.IsNullOrEmpty(cancelRequest.Remark))
+        {
+            warnMesage = "Remark Field is required!";
+            return;
+        }
+        ShowConfirmation = false;
+        if (value == true)
+        {
+            await ConfirmationChanged.InvokeAsync(cancelRequest);
+        }
+    }
+}
