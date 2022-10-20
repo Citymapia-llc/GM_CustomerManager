@@ -25,7 +25,24 @@ namespace GM.Store.Server.Controllers
             try
             {
                 _http.DefaultRequestHeaders.Add("Authorization", Request.Headers["Authorization"].ToString());
-                var response = await _dataAccessManager.GetAllRecieptAsync(model, "api/products", "Reciept");
+                var response = await _dataAccessManager.GetAllRecieptAsync(model, "api/receipt", "Reciept");
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _log.LogError(ex, ex.Message);
+            }
+            return null;
+        }
+
+        [Route("log")]
+        [HttpPost]
+        public async Task<IActionResult> GetAllLog(ReceiptRequestModel model)
+        {
+            try
+            {
+                _http.DefaultRequestHeaders.Add("Authorization", Request.Headers["Authorization"].ToString());
+                var response = await _dataAccessManager.GetRecieptLogAsync(model, "api/receipt", "Reciept");
                 return Ok(response);
             }
             catch (Exception ex)

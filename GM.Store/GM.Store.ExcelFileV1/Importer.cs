@@ -107,7 +107,7 @@ namespace GM.Store.ExcelFileV1
                                                     if (cellFormat != null)
                                                     {
                                                         var dateFormat = GetDateTimeFormat(cellFormat.NumberFormatId);
-                                                        cellValue = DateTime.FromOADate(double.Parse(c.CellValue.InnerXml)).ToString();
+                                                        cellValue = DateTime.FromOADate(double.Parse(c.CellValue.InnerXml)).ToString("dd-MM-yyyy");
                                                     }
                                                     else
                                                     {

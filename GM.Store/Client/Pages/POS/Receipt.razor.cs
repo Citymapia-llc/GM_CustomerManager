@@ -12,14 +12,7 @@ namespace GM.Store.Client.Pages.POS
         protected SendSms sendSms { get; set; }
         private bool isLoading;
             private int count { get; set; }
-            private int PendingSyncCount { get; set; }
             private bool showModal { get; set; }
-            private bool showSyncModal { get; set; }
-            private bool isSyncLoading { get; set; } = false;
-            private bool isSyncComplete { get; set; } = false;
-            private int SyncSuccessCount { get; set; }
-            private int SyncFailedCount { get; set; }
-            private string SyncErrorMessage { get; set; }
             protected ProductImportResponse productImportResponse = new ProductImportResponse();
 
             Radzen.Blazor.RadzenDataGrid<ReceiptModel> productGrid;
@@ -56,10 +49,6 @@ namespace GM.Store.Client.Pages.POS
                 {
                     isLoading = true;
                     isLoading = true;
-                    isSyncComplete = false;
-                    SyncSuccessCount = 0;
-                    SyncFailedCount = 0;
-                    SyncErrorMessage = string.Empty;
                     productImportResponse = new ProductImportResponse();
                     model.CurrentPage = args.Skip.Value;
                     model.PageSize = args.Top.Value;
@@ -67,8 +56,6 @@ namespace GM.Store.Client.Pages.POS
                     receipts = responseListData.Model.List.ToList();
                     var orderCount = responseListData.Model.Pager.TotalCount;
                     count = orderCount;
-                    var pendingSyncCount = responseListData.Model.Pager.PendingSyncCount;
-                    PendingSyncCount = pendingSyncCount;
                     isLoading = false;
                     StateHasChanged();
                 }
@@ -129,6 +116,11 @@ namespace GM.Store.Client.Pages.POS
             public async Task CloseModal()
             {
                 showModal = false;
+                await productGrid.Reload();
+                StateHasChanged();
+            } 
+        public async Task SendSmsClose()
+            {
                 await productGrid.Reload();
                 StateHasChanged();
             }

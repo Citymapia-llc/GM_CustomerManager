@@ -1,5 +1,5 @@
-﻿
-
+﻿@using Radzen
+@using Radzen.Blazor
 @if (ShowConfirmation)
 {
     <div class="modal fade fixed top-0 left-0 hidden w-full h-full outline-none overflow-x-hidden overflow-y-auto show order-history-pop"
@@ -16,19 +16,71 @@
                                 @onclick="CloseSummary" aria-label="Close"></button>
                         </span>
                     </div>
-                    <div class="ng-star-inserted" style="">
+                    <div style="">
                         <div class="w-full p-4">
-                            @if(receipt!=null)
+                            @if (receipt != null)
                             {
-                                <h4>Phone Number: @receipt.PhoneNumber</h4>
+                                <h3>Phone Number: @receipt.PhoneNumber</h3>
                             }
-                            @if(model!=null)
+                            @if (model != null)
                             {
-                                foreach (var item in model)
-                                {
-                                   <p>@item.Template</p> 
-                                }
+                                <div class="flex">
+                                    <div>
+                                        <RadzenRadioButtonList @bind-Value="@selectValue" TValue="SmsTemplateModel" Change=@((args) => OnChange(args, "RadioButtonList with horizontal orientation"))>
+                                            <Items>
+                                                @foreach (var item in model)
+                                                {
+                                                    <RadzenRadioButtonListItem Text="@item.Template" Value="@item" />
+                                                }
+                                            </Items>
+                                        </RadzenRadioButtonList>
+
+
+                                        @*@foreach (var item in model)
+                                            {
+
+                                            <div class="form-check">
+                                            <input class="form-check-input appearance-none rounded-full h-4 w-4 border border-gray-300 bg-white checked:bg-blue-600 checked:border-blue-600 focus:outline-none transition duration-200 mt-1 align-top bg-no-repeat bg-center bg-contain float-left mr-2 cursor-pointer"
+                                            type="radio" name="flexRadioDefault" id="flexRadio-@item.Id">
+                                            <label class="form-check-label inline-block text-gray-800" for="flexRadio-@item.Id">
+
+                                            @item.Template
+                                            </label>
+                                            </div>
+
+                                            }*@
+                                    </div>
+                                </div>
                             }
+                        </div>
+                        <div class="w-full p-4">
+                            <EditForm Model="requestModel" OnValidSubmit="SubmitAsync">
+                                <div class="modal-body relative p-4">
+                                    <DataAnnotationsValidator />
+                                    <div class="w-full mt-3 mb-5">
+                                        <div class="w-full mt-3 mb-5">
+                                            <p class="text-primary-4 text-[14px] form-label text-primary-4">Message</p>
+                                            <div class="w-full mt-3 mb-3">
+                                                <InputTextArea @bind-Value="requestModel.Message" class="font-medium border-b form-input w-full" rows="2" maxlength="150" type="text" />
+                                                <div class="error-validation">
+                                                    <ValidationMessage For="() => requestModel.Message" />
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer flex flex-shrink-0 flex-wrap items-center justify-end p-4 border-t border-gray-200 rounded-b-md">
+                                    <button type="submit" class="btn-green">
+                                        Send @if (isloading)
+                                                    {
+                                                        <div class="spinner-border text-primary ml-1" role="status">
+                                                            <span class="visually-hidden">Loading...</span>
+                                                        </div>
+                                                    }
+                                    </button>
+                                </div>
+                            </EditForm>
                         </div>
                     </div>
                 </div>
@@ -40,18 +92,38 @@
 }
 
 @code {
+    SmsTemplateModel selectValue ;
+    void OnChange(SmsTemplateModel? value, string name)
+    {
+        requestModel.Message = value.Template;
+        StateHasChanged();
+    }
     private bool ShowConfirmation { get; set; }
+    private SmsRequestModel requestModel = new SmsRequestModel();
     private List<SmsTemplateModel> model;
     public BusinessModel businessModel { get; set; }
     public ReceiptModel receipt { get; set; }
-    public bool isFromHistory { get; set; }
+    public bool isloading { get; set; }
     [Parameter]
-    public EventCallback<bool> OnorderSummaryClose { get; set; }
+    public EventCallback<bool> OnSendSmsClose { get; set; }
     private string LocalOrderId { get; set; }
 
     public async Task Show(ReceiptModel request)
     {
         receipt = request;
+        requestModel = new SmsRequestModel
+            {
+                Brand = request.Brand,
+                Complaint = request.Complaint,
+                CustomerName = request.CustomerName,
+                DeliveryDate = request.DeliveryDate,
+                PhoneNumber = request.PhoneNumber,
+                RecieptDate = request.RecieptDate,
+                RecieptNo = request.RecieptNo,
+                SLNO = request.SLNO,
+                LocalId=request.LocalId,
+                UserId=request.UserId
+            };
         businessModel = BusinessService.StoreDetails;
         var response = await this.SMSService.GetAllTempate();
         if (response != null && response.Model != null)
@@ -64,8 +136,25 @@
     public void CloseSummary()
     {
         ShowConfirmation = false;
-        OnorderSummaryClose.InvokeAsync(true);
+        OnSendSmsClose.InvokeAsync(true);
         StateHasChanged();
     }
-   
+    public async Task SubmitAsync()
+    {
+        isloading = true;
+        var result = await this.SMSService.Send(this.requestModel);
+        if (result.Succeeded)
+        {
+            ShowConfirmation = false;
+            await OnSendSmsClose.InvokeAsync(true);
+            StateHasChanged();
+
+        }
+        else
+        {
+
+        }
+        isloading = false;
+    }
+
 }

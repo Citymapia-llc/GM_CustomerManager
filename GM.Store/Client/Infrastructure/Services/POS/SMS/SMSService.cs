@@ -29,11 +29,11 @@ namespace GM.Store.Client.Infrastructure.Services
                 throw ex;
             }
         }
-        public async Task<ProductImportResponse> Import(UploadedFile model)
+        public async Task<ResponseData<bool>> Send(SmsRequestModel model)
         {
             try
             {
-                var response = await _dataManager.PostAsync<ProductImportResponse>(model, "api/Reciept/import");
+                var response = await _dataManager.PostAsync<ResponseData<bool>>(model, "api/sms/send");
                 return response;
             }
             catch (Exception ex)

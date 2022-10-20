@@ -4,17 +4,15 @@
 <link href="_content/Radzen.Blazor/css/standard.css" rel="stylesheet">
 <div class="content-with-right-panel" style="right:0">
     <div class="flex items-center justify-between pos-top-search-area">
-        <h2 class="mb-0 font-medium">Reciept</h2>
+        <h2 class="mb-0 font-medium">Receipt Log </h2>
     </div>
 
     <div class="product-list-wrap-pos order-history-top" id="product-list">
         <div class="row px-3 pb-3 justify-between">
-            <div class="d-flex">
-                <a class="btn btn-third my-auto" @onclick="ModalOpen" href="javascript:void(0)">Import </a>
-            </div>
+            
         </div>
 
-        <RadzenDataGrid @ref="productGrid" style="height:720px" IsLoading=@isLoading Count="@count" Data="@receipts" LoadData="@LoadData" AllowSorting="true" AllowPaging="true" PageSize="10"
+        <RadzenDataGrid  style="height:720px" Count="@count" Data="@receipts" LoadData="@LoadData" AllowSorting="true" AllowPaging="true" PageSize="10"
                         PagerHorizontalAlign="HorizontalAlign.Center" TItem="ReceiptModel" ColumnWidth="200px" ShowPagingSummary="true">
             @*@bind-Value=@selectedOrder RowSelect=@RowSelect*@
             <EmptyTemplate>
@@ -24,15 +22,13 @@
                 <RadzenDataGridColumn TItem="ReceiptModel" Property="RecieptNo" Title="RecieptNo">
 
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="ReceiptModel" Property="RecieptDate" Title="Reciept Date">
-                    <Template Context="order">@order.RecieptDate</Template>
-                </RadzenDataGridColumn>
                 <RadzenDataGridColumn TItem="ReceiptModel" Property="CustomerName" Title="CustomerName" />
                 <RadzenDataGridColumn TItem="ReceiptModel" Property="PhoneNumber" Title="PhoneNumber">
 
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="ReceiptModel" Property="Brand" Title="Brand" />
-                <RadzenDataGridColumn TItem="ReceiptModel" Property="Model" Title="Model" />
+                <RadzenDataGridColumn TItem="ReceiptModel" Property="RecieptDate" Title="Reciept Date">
+                    <Template Context="order">@order.RecieptDate</Template>
+                </RadzenDataGridColumn>
                 <RadzenDataGridColumn TItem="ReceiptModel" Property="DeliveryDate" Title="Delivery Date" Sortable=false Filterable=false />
                 @* <RadzenDataGridColumn TItem="OrderHistoryResponse" Property="OrderStatus" Title="Order Status" Filterable=false>
                     <Template Context="order"><RadzenBadge  BadgeStyle="BadgeStyle.Success" Text=@($"{order.OrderStatusName}") /></Template>
@@ -43,7 +39,7 @@
             </Columns>
         </RadzenDataGrid>
 
-        @if (showModal)
+       @* @if (showModal)
         {
             <div class="modal fade fixed top-0 left-0 hidden w-full h-full outline-none overflow-x-hidden overflow-y-auto show" style="display:block;" id="add-customer" tabindex="-1" aria-labelledby="add-customerTitle" aria-modal="true" role="dialog">
                 <div class="modal-dialog modal-dialog-centered relative w-auto pointer-events-none">
@@ -107,10 +103,9 @@
                 </div>
             </div>
             <div class="modal-backdrop fade show"></div>
-        }
+        }*@
 
     </div>
 </div>
-<SendSms @ref="sendSms" OnSendSmsClose="SendSmsClose"></SendSms>
 @code {
 }

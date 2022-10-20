@@ -31,12 +31,15 @@ namespace GM.Store.Server.Controllers
                 var notify = new List<NotificationItem>();
                 notify.Add(new NotificationItem
                 {
-                   
                     PhoneNumber = model.PhoneNumber,
                     Message = model.Message,
                 });
 
-                await _smHelper.SendAsync(notify, null, "BLKSMS", 0, "CITYMAPIA");
+               var response= await _smHelper.SendAsync(notify, null, "BLKSMS", 0, "CITYMAPIA");
+                if(response != null && response>0)
+                {
+                    var receiptResponse = _dataAccessManager.ConfirmRecieptAsync(model);
+                }
                 return BadRequest(new ResponseData<bool> { Status = StatusCodes.Status500InternalServerError, Message = "Error" });
 
             }

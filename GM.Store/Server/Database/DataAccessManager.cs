@@ -31,7 +31,9 @@ namespace GM.Store.Server.Database
         Task<ResponseData<List<SyncModel>>> GetOrAddSyncItemsAsync();
         bool ImportRecieptAsync(ReceiptModel req);
         Task<ResponseListData<Reciept>> GetAllRecieptAsync(ReceiptRequestModel model, string apiUrl, string key = "");
+        Task<ResponseListData<ConfirmedReciept>> GetRecieptLogAsync(ReceiptRequestModel model, string apiUrl, string key = "");
         Task<List<SmsTemplate>> GetSmsTemplateAsync(string apiUrl, string key = "");
+       bool ConfirmRecieptAsync(SmsRequestModel req);
     }
 
     /// <summary>
@@ -116,7 +118,7 @@ namespace GM.Store.Server.Database
             return model;
         }
 
-       
+
 
         public async Task<ResponseData<Sync>> GetLastSyncTimeAsync(string apiUrl)
         {
@@ -542,8 +544,25 @@ namespace GM.Store.Server.Database
             {
                 using (var session = _store.Store.OpenSession())
                 {
-                    var objProduct = session.Query<Reciept>().Where(a => a.RecieptNo == req.RecieptNo).FirstOrDefault();
+                    var objReceipt = session.Query<Reciept>().Where(a => a.RecieptNo == req.RecieptNo).FirstOrDefault();
                     var localRecieptId = Guid.NewGuid().ToString("N").Substring(0, 6);
+                    var userId = Guid.NewGuid().ToString("N").Substring(0, 6);
+                    var user = session.Query<User>().Where(a => a.PhoneNumber == req.PhoneNumber).FirstOrDefault();
+                    if (user == null)
+                    {
+                        var userObj = new User
+                        {
+                            LocalId = userId,
+                            PhoneNumber = req.PhoneNumber,
+                            UserName = req.CustomerName == null ? req.PhoneNumber : req.CustomerName,
+                            IsToSync = true
+                        };
+                        session.Store(userObj, $"{userId}");
+                    }
+                    else
+                    {
+                        userId = user.LocalId;
+                    }
                     var item = new Reciept
                     {
                         LocalId = Guid.NewGuid().ToString("N").Substring(0, 6),
@@ -557,34 +576,24 @@ namespace GM.Store.Server.Database
                         DeliveryDate = req.DeliveryDate,
                         CreatedOn = DateTime.UtcNow,
                         LastUpdatedOn = DateTime.UtcNow,
-                        IsToSync=true,
-                        SLNO=req.SLNO,
+                        IsToSync = true,
+                        SLNO = req.SLNO,
+                        UserId = userId,
                     };
-                    if (objProduct == null)
+                    if (objReceipt == null)
                         session.Store(item, $"{item.LocalId}");
                     else
                     {
-                        objProduct.CustomerName = item.CustomerName;
-                        objProduct.PhoneNumber = item.PhoneNumber;
-                        objProduct.Model = item.Model;
-                        objProduct.Complaint = item.Complaint;
-                        objProduct.DeliveryDate = item.DeliveryDate;
-                        objProduct.RecieptDate = item.RecieptDate;
-                        objProduct.LastUpdatedOn = item.LastUpdatedOn;
-                        objProduct.IsToSync = item.IsToSync;
+                        objReceipt.CustomerName = item.CustomerName;
+                        objReceipt.PhoneNumber = item.PhoneNumber;
+                        objReceipt.Model = item.Model;
+                        objReceipt.Complaint = item.Complaint;
+                        objReceipt.DeliveryDate = item.DeliveryDate;
+                        objReceipt.RecieptDate = item.RecieptDate;
+                        objReceipt.LastUpdatedOn = item.LastUpdatedOn;
+                        objReceipt.IsToSync = item.IsToSync;
                     }
-                    var user = session.Query<User>().Where(a => a.PhoneNumber.Trim() == req.PhoneNumber.Trim()).FirstOrDefault();
-                    if(user == null)
-                    {
-                        var userObj = new User
-                        {
-                            LocalId = Guid.NewGuid().ToString("N").Substring(0, 6),
-                            PhoneNumber = req.PhoneNumber,
-                            UserName = req.CustomerName == null ? req.PhoneNumber : req.CustomerName,
-                            IsToSync = true
-                        };
-                        session.Store(userObj, $"{item.LocalId}");
-                    }
+
 
                     session.SaveChanges();
                 }
@@ -596,8 +605,51 @@ namespace GM.Store.Server.Database
             }
             return false;
         }
+        public bool ConfirmRecieptAsync(SmsRequestModel req)
+        {
+            try
+            {
+                using (var session = _store.Store.OpenSession())
+                {
+                    var item = new ConfirmedReciept
+                    {
+                        LocalId = Guid.NewGuid().ToString("N").Substring(0, 6),
+                        ReceiptId = req.LocalId,
+                        CustomerName = req.CustomerName,
+                        RecieptNo = req.RecieptNo,
+                        RecieptDate = req.RecieptDate,
+                        PhoneNumber = req.PhoneNumber,
+                        Brand = req.Brand,
+                        Model = req.Model,
+                        Complaint = req.Complaint,
+                        DeliveryDate = req.DeliveryDate,
+                        CreatedOn = DateTime.UtcNow,
+                        SLNO = req.SLNO,
+                        UserId = req.UserId,
+                        Message = req.Message,
+                    };
+                    session.Store(item, $"{item.LocalId}");
+                    session.SaveChanges();
+                }
+                using (var session = _store.Store.OpenSession())
+                {
+                    var objReceipt = session.Query<Reciept>().Where(a => a.RecieptNo == req.RecieptNo).FirstOrDefault();
+                    if (objReceipt != null)
+                    {
+                        session.Delete<Reciept>(objReceipt);
+                        session.SaveChanges();
+                    }
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _log.LogError(ex, ex.Message);
+            }
+            return false;
+        }
 
-        public async Task<ResponseListData<Reciept>> GetAllRecieptAsync(ReceiptRequestModel model, string apiUrl, string key = "") 
+        public async Task<ResponseListData<Reciept>> GetAllRecieptAsync(ReceiptRequestModel model, string apiUrl, string key = "")
         {
 
             ResponseListData<Reciept>? respModel = new ResponseListData<Reciept>();
@@ -614,8 +666,8 @@ namespace GM.Store.Server.Database
 
                     if (list.Count() == 0)
                     {
-                        
-                            return respModel;
+
+                        return respModel;
                     }
 
                     if (list != null)
@@ -624,11 +676,56 @@ namespace GM.Store.Server.Database
                         {
                             model.Keyword = model.Keyword.ToLower();
                             list = list.Where(x => (x.CustomerName != null && x.CustomerName.ToLower().Contains(model.Keyword)) || (x.PhoneNumber != null && x.PhoneNumber.ToLower().Contains(model.Keyword)) ||
-                            (x.RecieptNo != null && x.RecieptNo.ToLower().Contains(model.Keyword)) ||(x.Brand != null && x.Brand.ToLower().Contains(model.Keyword)) || (x.Complaint != null && x.Complaint.ToLower().Contains(model.Keyword))).ToList();
+                            (x.RecieptNo != null && x.RecieptNo.ToLower().Contains(model.Keyword)) || (x.Brand != null && x.Brand.ToLower().Contains(model.Keyword)) || (x.Complaint != null && x.Complaint.ToLower().Contains(model.Keyword))).ToList();
                         }
                         totalCount = list.Count();
                         pendingSyncCount = list.Where(a => a.IsToSync == true).Count();
                         list = list.OrderByDescending(a => a.IsToSync).ThenByDescending(a => a.LastUpdatedOn).Skip(model.CurrentPage).Take(model.PageSize).ToList();
+                        respModel.Model.List = list;
+                        respModel.Model.Pager = new GMPager { TotalCount = totalCount, CurrentPage = model.CurrentPage, PageSize = model.PageSize, PendingSyncCount = pendingSyncCount };
+                        respModel.Status = StatusCodes.Status200OK;
+                    }
+                }
+
+                return respModel;
+            }
+            catch (Exception ex)
+            {
+                _log.LogError(ex, ex.Message);
+            }
+            return respModel;
+        }
+        public async Task<ResponseListData<ConfirmedReciept>> GetRecieptLogAsync(ReceiptRequestModel model, string apiUrl, string key = "")
+        {
+
+            ResponseListData<ConfirmedReciept>? respModel = new ResponseListData<ConfirmedReciept>();
+            respModel.Status = StatusCodes.Status500InternalServerError;
+            try
+            {
+                if (string.IsNullOrEmpty(key))
+                    key = apiUrl;
+                int totalCount = 0;
+                int pendingSyncCount = 0;
+                using (var session = _store.Store.OpenAsyncSession())
+                {
+                    var list = await session.Query<ConfirmedReciept>().ToListAsync();
+
+                    if (list.Count() == 0)
+                    {
+
+                        return respModel;
+                    }
+
+                    if (list != null)
+                    {
+                        if (!string.IsNullOrEmpty(model.Keyword))
+                        {
+                            model.Keyword = model.Keyword.ToLower();
+                            list = list.Where(x => (x.CustomerName != null && x.CustomerName.ToLower().Contains(model.Keyword)) || (x.PhoneNumber != null && x.PhoneNumber.ToLower().Contains(model.Keyword)) ||
+                            (x.RecieptNo != null && x.RecieptNo.ToLower().Contains(model.Keyword)) || (x.Brand != null && x.Brand.ToLower().Contains(model.Keyword)) || (x.Complaint != null && x.Complaint.ToLower().Contains(model.Keyword))).ToList();
+                        }
+                        totalCount = list.Count();
+                        list = list.OrderByDescending(a => a.CreatedOn).Skip(model.CurrentPage).Take(model.PageSize).ToList();
                         respModel.Model.List = list;
                         respModel.Model.Pager = new GMPager { TotalCount = totalCount, CurrentPage = model.CurrentPage, PageSize = model.PageSize, PendingSyncCount = pendingSyncCount };
                         respModel.Status = StatusCodes.Status200OK;

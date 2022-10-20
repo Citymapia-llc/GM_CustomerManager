@@ -7,6 +7,6 @@ namespace GM.Store.Client.Infrastructure.Services
     public interface ISMSService
     {
         Task<ResponseData<List<SmsTemplateModel>>> GetAllTempate();
-        Task<ProductImportResponse> Import(UploadedFile model);
+        Task<ResponseData<bool>> Send(SmsRequestModel model);
     }
 }

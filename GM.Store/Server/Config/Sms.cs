@@ -42,22 +42,23 @@ namespace GM.Store.Server.Config
                    | SecurityProtocolType.Ssl3;
 
 
-            using (var client = new HttpClient())
-            {
-                client.BaseAddress = new Uri(ApiUrl);
-                client.DefaultRequestHeaders.Accept.Clear();
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                //GET Method
-                HttpResponseMessage response = await client.GetAsync(url);
-                if (response.IsSuccessStatusCode)
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            }
+            //using (var client = new HttpClient())
+            //{
+            //    client.BaseAddress = new Uri(ApiUrl);
+            //    client.DefaultRequestHeaders.Accept.Clear();
+            //    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            //    //GET Method
+            //    HttpResponseMessage response = await client.GetAsync(url);
+            //    if (response.IsSuccessStatusCode)
+            //    {
+            //        return true;
+            //    }
+            //    else
+            //    {
+            //        return false;
+            //    }
+            //}
+            return true;
         }
 
     }

@@ -10,6 +10,7 @@ namespace GM.Store.Shared.Models
     {
         public string? SLNO { get; set; }
         public string? LocalId { get; set; }
+        public string? UserId { get; set; }
         public int LiveId { get; set; }
         public string? RecieptNo { get; set; }
         public string? RecieptDate { get; set; }

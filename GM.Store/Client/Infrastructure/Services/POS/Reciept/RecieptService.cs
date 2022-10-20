@@ -29,6 +29,19 @@ namespace GM.Store.Client.Infrastructure.Services
                 throw ex;
             }
         }
+
+        public async Task<ResponseListData<ReceiptModel>> GetLog(ReceiptRequestModel model)
+        {
+            try
+            {
+                var response = await _dataManager.PostAsync<ResponseListData<ReceiptModel>>(model, "api/Reciept/log");
+                return response;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
         public async Task<ProductImportResponse> Import(UploadedFile model)
         {
             try
