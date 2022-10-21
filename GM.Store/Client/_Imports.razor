@@ -3,7 +3,6 @@
 @using Append.Blazor.Printing
 @using GM.Store.Client.Infrastructure
 @using GM.Store.Client.Infrastructure.Services
-@using GM.Store.Client.Infrastructure.Services.POS.Product
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.AspNetCore.Components.Forms
@@ -30,8 +29,6 @@
 @inject IUserService UserService
 @inject ISMSService SMSService
 @inject IJSRuntime JS
-@inject IProductService ProductService
-@inject IOrderHistoryService OrderHistoryService
 @inject IPrintingService PrintingService
 @inject IReportService ReportService
 @inject IRecieptService RecieptService

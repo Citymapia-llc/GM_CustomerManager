@@ -6857,7 +6857,12 @@ select.progress-dropdown button.form-input.border-b-1.view-only {
         background-color: #d6aa00;
     }
 
-
+.rz-radio-button-list-horizontal .rz-radio-btn{
+    padding:0.6rem 0;
+}
+.rz-radio-button-list-horizontal .rz-radio-btn .rz-radiobutton{
+    margin-right:0.6rem;
+}
 @media only screen and (max-width:1750px) {
     .w-3\/12.history-listing {
         width: 36%;

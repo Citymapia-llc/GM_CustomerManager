@@ -24,7 +24,6 @@ try
     builder.Services.AddSingleton<IDocumentStoreHolder, DocumentStoreHolder>();
     builder.Services.AddScoped<IEncodePasswordHelper, EncodePasswordHelper>();
     builder.Services.AddScoped<IDataAccessManager, DataAccessManager>();
-    builder.Services.AddScoped<ISmsHelper, SmsHelper>();
     builder.Services.AddHttpClient();
 
     builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(serviceConfig.BaseApiUrl) });
@@ -57,15 +56,6 @@ try
     builder.Logging.AddProvider(new SerilogLoggerProvider());
 
     var app = builder.Build();
-
- 
-
-
-    //Log.Logger = new LoggerConfiguration()
-    //    .WriteTo.Logger(lc => lc
-    //                    .Filter.ByIncludingOnly("")
-    //                    .WriteTo.File("Logs/Log-Error-{Date}.log", rollingInterval: RollingInterval.Day))
-    //    .CreateLogger();
   
     // Configure the HTTP request pipeline.
     if (app.Environment.IsDevelopment())

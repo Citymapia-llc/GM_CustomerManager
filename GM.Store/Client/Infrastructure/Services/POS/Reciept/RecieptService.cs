@@ -30,11 +30,11 @@ namespace GM.Store.Client.Infrastructure.Services
             }
         }
 
-        public async Task<ResponseListData<ReceiptModel>> GetLog(ReceiptRequestModel model)
+        public async Task<ResponseListData<ConfirmedReciept>> GetLog(ReceiptRequestModel model)
         {
             try
             {
-                var response = await _dataManager.PostAsync<ResponseListData<ReceiptModel>>(model, "api/Reciept/log");
+                var response = await _dataManager.PostAsync<ResponseListData<ConfirmedReciept>>(model, "api/Reciept/log");
                 return response;
             }
             catch (Exception ex)

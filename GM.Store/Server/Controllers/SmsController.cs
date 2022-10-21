@@ -14,13 +14,11 @@ namespace GM.Store.Server.Controllers
         private readonly HttpClient _http;
         private readonly ILogger<SmsController> _log;
         private readonly IDataAccessManager _dataAccessManager;
-        private readonly ISmsHelper _smHelper;
-        public SmsController(ILogger<SmsController> log, HttpClient http, IDataAccessManager dataAccessManager, ISmsHelper smHelper)
+        public SmsController(ILogger<SmsController> log, HttpClient http, IDataAccessManager dataAccessManager)
         {
             _log = log;
             _http = http;
             _dataAccessManager = dataAccessManager;
-            _smHelper = smHelper;
         }
         [Route("Send")]
         [HttpPost]
@@ -28,26 +26,28 @@ namespace GM.Store.Server.Controllers
         {
             try
             {
+                _http.DefaultRequestHeaders.Add("Authorization", Request.Headers["Authorization"].ToString());
                 var notify = new List<NotificationItem>();
                 notify.Add(new NotificationItem
                 {
                     PhoneNumber = model.PhoneNumber,
                     Message = model.Message,
                 });
-
-               var response= await _smHelper.SendAsync(notify, null, "BLKSMS", 0, "CITYMAPIA");
-                if(response != null && response>0)
+                var response = await _http.PostAsJsonAsync("api/sms/send", notify);
+                var respModel = await response.Content.ReadFromJsonAsync<ResponseData<int>>();
+                if (respModel != null && respModel.Succeeded)
                 {
-                    var receiptResponse = _dataAccessManager.ConfirmRecieptAsync(model);
+                    var receiptResponse = await _dataAccessManager.ConfirmRecieptAsync(model);
+                    return Ok(new ResponseData<bool> { Status = StatusCodes.Status200OK, Message = "Success" });
                 }
-                return BadRequest(new ResponseData<bool> { Status = StatusCodes.Status500InternalServerError, Message = "Error" });
+                return BadRequest(new ResponseData<List<SyncModel>> { Status = StatusCodes.Status500InternalServerError, Message = "Error" });
 
             }
             catch (Exception ex)
             {
                 _log.LogError(ex, ex.Message);
             }
-            return BadRequest(new ResponseData<List<SyncModel>> {  Status = StatusCodes.Status500InternalServerError, Message = "Error" });
+            return BadRequest(new ResponseData<List<SyncModel>> { Status = StatusCodes.Status500InternalServerError, Message = "Error" });
         }
 
         [Route("Log")]

@@ -13,29 +13,27 @@
         </div>
 
         <RadzenDataGrid  style="height:720px" Count="@count" Data="@receipts" LoadData="@LoadData" AllowSorting="true" AllowPaging="true" PageSize="10"
-                        PagerHorizontalAlign="HorizontalAlign.Center" TItem="ReceiptModel" ColumnWidth="200px" ShowPagingSummary="true">
+                        PagerHorizontalAlign="HorizontalAlign.Center" TItem="ConfirmedReciept" ColumnWidth="100px" ShowPagingSummary="true">
             @*@bind-Value=@selectedOrder RowSelect=@RowSelect*@
             <EmptyTemplate>
                 <p style="color: lightgrey; font-size: 24px; text-align: center; margin: 2rem;">No records to display.</p>
             </EmptyTemplate>
             <Columns>
-                <RadzenDataGridColumn TItem="ReceiptModel" Property="RecieptNo" Title="RecieptNo">
+                <RadzenDataGridColumn TItem="ConfirmedReciept" Property="RecieptNo" Title="RecieptNo">
 
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="ReceiptModel" Property="CustomerName" Title="CustomerName" />
-                <RadzenDataGridColumn TItem="ReceiptModel" Property="PhoneNumber" Title="PhoneNumber">
+                <RadzenDataGridColumn TItem="ConfirmedReciept" Property="CustomerName" Title="CustomerName" />
+                <RadzenDataGridColumn TItem="ConfirmedReciept" Property="PhoneNumber" Title="PhoneNumber">
 
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="ReceiptModel" Property="RecieptDate" Title="Reciept Date">
-                    <Template Context="order">@order.RecieptDate</Template>
+                <RadzenDataGridColumn TItem="ConfirmedReciept" Property="CreatedOn" Title="Sms Send Date">
+                    <Template Context="order">@order.CreatedOn</Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="ReceiptModel" Property="DeliveryDate" Title="Delivery Date" Sortable=false Filterable=false />
-                @* <RadzenDataGridColumn TItem="OrderHistoryResponse" Property="OrderStatus" Title="Order Status" Filterable=false>
-                    <Template Context="order"><RadzenBadge  BadgeStyle="BadgeStyle.Success" Text=@($"{order.OrderStatusName}") /></Template>
-                    </RadzenDataGridColumn>*@
-                <RadzenDataGridColumn Width="160px" TItem="ReceiptModel" Property="Id" Title="Order Details" Sortable=false Filterable=false>
+                <RadzenDataGridColumn TItem="ConfirmedReciept" Property="Message" Title="Message" Sortable=false Filterable=false />
+                
+                @*<RadzenDataGridColumn Width="160px" TItem="ConfirmedReciept" Property="Id" Title="Order Details" Sortable=false Filterable=false>
                     <Template Context="data"><RadzenButton ButtonStyle="ButtonStyle.Info" Icon="info" Class="m-1" Click=@(() => orderDetailsById(data)) Text="Send SMS" /></Template>
-                </RadzenDataGridColumn>
+                </RadzenDataGridColumn>*@
             </Columns>
         </RadzenDataGrid>
 

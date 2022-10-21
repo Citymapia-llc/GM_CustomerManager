@@ -3,18 +3,25 @@ using Radzen;
 
 namespace GM.Store.Client.Pages.POS
 {
-    public partial class ReceiptLog
+    public partial class User
     {
         protected BusinessModel businessModel = new BusinessModel();
-        protected IList<ConfirmedReciept> receipts = new List<ConfirmedReciept>();
-        protected ReceiptRequestModel model = new ReceiptRequestModel();
-        protected SendSms sendSms { get; set; }
-        protected bool showModal { get; set; }
+
+        protected IList<UserResponseModel> users = new List<UserResponseModel>();
+
+        protected UserRequestModel model = new UserRequestModel();
+
+        private bool isLoading;
         private int count { get; set; }
+        private bool showModal { get; set; }
 
+        protected ProductImportResponse productImportResponse = new ProductImportResponse();
 
+        Radzen.Blazor.RadzenDataGrid<ReceiptModel> productGrid;
+        int uploadLoader = 0;
         protected override async Task OnInitializedAsync()
         {
+            isLoading = true;
             var authstate = await AuthState.GetAuthenticationStateAsync();
             var user = authstate.User;
             if (user.Identity.Name != null)
@@ -34,15 +41,19 @@ namespace GM.Store.Client.Pages.POS
         {
             try
             {
+                isLoading = true;
+                isLoading = true;
+                productImportResponse = new ProductImportResponse();
                 model.CurrentPage = args.Skip.Value;
                 model.PageSize = args.Top.Value;
-                var responseListData = await this.RecieptService.GetLog(model);
+                var responseListData = await this.UserService.GetAllAsync(model);
                 if (responseListData != null && responseListData.Succeeded)
                 {
-                    receipts = responseListData.Model.List.ToList();
-                    var orderCount = responseListData.Model.Pager.TotalCount;
-                    count = orderCount;
+                    users = responseListData.Model.List.ToList();
+                    var userCount = responseListData.Model.Pager.TotalCount;
+                    count = userCount;
                 }
+                isLoading = false;
                 StateHasChanged();
             }
             catch (Exception ex)
@@ -51,9 +62,9 @@ namespace GM.Store.Client.Pages.POS
             }
         }
 
-        async Task orderDetailsById(ReceiptModel model)
+        async Task orderDetailsById(UserResponseModel model)
         {
-            await sendSms.Show(model);
+           // await sendSms.Show(model);
         }
 
         
@@ -66,6 +77,12 @@ namespace GM.Store.Client.Pages.POS
         public async Task CloseModal()
         {
             showModal = false;
+            await productGrid.Reload();
+            StateHasChanged();
+        }
+        public async Task SendSmsClose()
+        {
+            await productGrid.Reload();
             StateHasChanged();
         }
     }

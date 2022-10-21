@@ -19,7 +19,7 @@
     }
     else if (activeTab == 3)
     {
-       <GM.Store.Client.Pages.POS.Contact></GM.Store.Client.Pages.POS.Contact>
+       <GM.Store.Client.Pages.POS.User></GM.Store.Client.Pages.POS.User>
     }
     else if (activeTab == 4)
     {
@@ -41,6 +41,8 @@
             activeTab = 2;
         else if (relativeUrl=="pos/customers")
             activeTab = 3;
+        else if (relativeUrl=="pos/sync")
+            activeTab = 4;
         StateHasChanged();
         businessModel = await this.localStorage.GetItemAsync<BusinessModel>("storeDetails", null);
         isAfterLoaded = true;

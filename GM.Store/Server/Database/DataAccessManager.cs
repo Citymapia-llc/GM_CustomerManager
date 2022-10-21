@@ -23,17 +23,15 @@ namespace GM.Store.Server.Database
         Task<bool> GetAppTeamUsersAsync<AppTeamUser>(string apiUrl, string key = "");
         Task<ResponseData<AdminLoginResponseModel>> AdminLoginAsync(LoginModel req, string apiUrl, string key = "");
         Task<bool> RemoveBusinessSettingAsync(string key = "");
-        Task<ResponseData<bool>> SyncProductsAsync(string apiUrl, string key = "");
-        Task<ResponseData<bool>> SyncCategoriesAsync(string apiUrl, string key = "");
-        Task<ResponseData<bool>> SyncSectionAsync(string apiUrl, string key = "");
+        Task<ResponseData<bool>> SyncSmsTemplateAsync(string apiUrl, string key = "");
         Task<ResponseData<bool>> SyncAdminUserAsync(string apiUrl, string key = "");
-        Task<ResponseData<bool>> SyncChefListAsync(string apiUrl, string key = "");
         Task<ResponseData<List<SyncModel>>> GetOrAddSyncItemsAsync();
         bool ImportRecieptAsync(ReceiptModel req);
         Task<ResponseListData<Reciept>> GetAllRecieptAsync(ReceiptRequestModel model, string apiUrl, string key = "");
         Task<ResponseListData<ConfirmedReciept>> GetRecieptLogAsync(ReceiptRequestModel model, string apiUrl, string key = "");
         Task<List<SmsTemplate>> GetSmsTemplateAsync(string apiUrl, string key = "");
-       bool ConfirmRecieptAsync(SmsRequestModel req);
+        Task<bool> ConfirmRecieptAsync(SmsRequestModel req);
+        Task<ResponseListData<User>> GetAllUserAsync(UserRequestModel model);
     }
 
     /// <summary>
@@ -117,9 +115,6 @@ namespace GM.Store.Server.Database
             }
             return model;
         }
-
-
-
         public async Task<ResponseData<Sync>> GetLastSyncTimeAsync(string apiUrl)
         {
 
@@ -194,11 +189,9 @@ namespace GM.Store.Server.Database
                 {
                     using (var session = _store.Store.OpenAsyncSession())
                     {
-                        resp.Model.Add(new SyncModel { ItemId = 1, Name = "Categories", CreatedOn = DateTime.UtcNow });
-                        resp.Model.Add(new SyncModel { ItemId = 2, Name = "Items", CreatedOn = DateTime.UtcNow });
-                        resp.Model.Add(new SyncModel { ItemId = 3, Name = "Section", CreatedOn = DateTime.UtcNow });
-                        resp.Model.Add(new SyncModel { ItemId = 4, Name = "Admin Users", CreatedOn = DateTime.UtcNow });
-                        resp.Model.Add(new SyncModel { ItemId = 5, Name = "Chef List", CreatedOn = DateTime.UtcNow });
+                        resp.Model.Add(new SyncModel { ItemId = 1, Name = "Sms Templates", CreatedOn = DateTime.UtcNow });
+                        
+                        resp.Model.Add(new SyncModel { ItemId = 2, Name = "Admin Users", CreatedOn = DateTime.UtcNow });
                         foreach (var item in resp.Model)
                         {
                             await session.StoreAsync(item);
@@ -298,52 +291,8 @@ namespace GM.Store.Server.Database
             return model;
         }
 
-        public async Task<ResponseData<bool>> SyncProductsAsync(string apiUrl, string key = "")
-        {
-
-            ResponseData<bool> respModel = new ResponseData<bool>();
-            respModel.Status = StatusCodes.Status500InternalServerError;
-            try
-            {
-                if (string.IsNullOrEmpty(key))
-                    key = apiUrl;
-
-
-                var response = await _httpClient.PostAsJsonAsync(apiUrl, new ProductRequestModel { CurrentPage = 1, PageSize = 300 });
-                var responseModel = await response.Content.ReadFromJsonAsync<ResponseListData<Product>>();
-                if (responseModel != null && responseModel.Succeeded)
-                {
-                    using (var session = _store.Store.OpenAsyncSession())
-                    {
-                        var list = await session.Query<Product>().ToListAsync();
-                        foreach (var item in list)
-                        {
-                            session.Delete<Product>(item);
-                        }
-                        await session.SaveChangesAsync();
-                        foreach (var item in responseModel.Model.List)
-                        {
-                            await session.StoreAsync(item);
-                        }
-                        var syncItem = await session.Query<SyncModel>().Where(a => a.ItemId == 2).FirstOrDefaultAsync();
-                        if (syncItem != null)
-                        {
-                            syncItem.LastSyncTime = DateTime.Now;
-                        }
-                        await session.SaveChangesAsync();
-                    }
-                    respModel.Model = true;
-                    respModel.Status = StatusCodes.Status200OK;
-                }
-                return respModel;
-            }
-            catch (Exception ex)
-            {
-                _log.LogError(ex, ex.Message);
-            }
-            return respModel;
-        }
-        public async Task<ResponseData<bool>> SyncCategoriesAsync(string apiUrl, string key = "")
+      
+        public async Task<ResponseData<bool>> SyncSmsTemplateAsync(string apiUrl, string key = "")
         {
             if (string.IsNullOrEmpty(key))
                 key = apiUrl;
@@ -352,17 +301,22 @@ namespace GM.Store.Server.Database
             respModel.Status = StatusCodes.Status500InternalServerError;
             try
             {
-                var model = await _httpClient.GetFromJsonAsync<ResponseData<List<FeaturedCategory>>>(apiUrl);
+                var model = await this._httpClient.GetFromJsonAsync<ResponseData<List<SmsTemplate>>>(apiUrl);
                 if (model != null)
                 {
 
                     using (var session = _store.Store.OpenAsyncSession())
                     {
-                        var list = await session.LoadAsync<ResponseData<List<FeaturedCategory>>>(key);
-                        session.Delete(list);
+                        var list = await session.Query<SmsTemplate>().ToListAsync();
+                        foreach (var item in list)
+                        {
+                            session.Delete<SmsTemplate>(item);
+                        }
                         await session.SaveChangesAsync();
-
-                        await session.StoreAsync(model, key);
+                        foreach (var item in model.Model)
+                        {
+                            await session.StoreAsync(item, item.Id);
+                        }
                         var syncItem = await session.Query<SyncModel>().Where(a => a.ItemId == 1).FirstOrDefaultAsync();
                         if (syncItem != null)
                         {
@@ -384,43 +338,7 @@ namespace GM.Store.Server.Database
 
         }
 
-        public async Task<ResponseData<bool>> SyncSectionAsync(string apiUrl, string key = "")
-        {
-            ResponseData<bool>? respModel = new ResponseData<bool>();
-            respModel.Status = StatusCodes.Status500InternalServerError;
-            try
-            {
-                if (string.IsNullOrEmpty(key))
-                    key = apiUrl;
-
-
-                var response = await _httpClient.GetFromJsonAsync<ResponseData<List<Section>>>(apiUrl);
-                if (response != null && response.Succeeded)
-                {
-                    using (var session = _store.Store.OpenAsyncSession())
-                    {
-                        foreach (var item in response.Model)
-                        {
-                            await session.StoreAsync(item);
-                        }
-                        var syncItem = await session.Query<SyncModel>().Where(a => a.ItemId == 3).FirstOrDefaultAsync();
-                        if (syncItem != null)
-                        {
-                            syncItem.LastSyncTime = DateTime.Now;
-                        }
-                        await session.SaveChangesAsync();
-                    }
-                    respModel.Status = StatusCodes.Status200OK;
-                    respModel.Model = true;
-                }
-                return respModel;
-            }
-            catch (Exception ex)
-            {
-                _log.LogError(ex, ex.Message);
-            }
-            return respModel;
-        }
+        
 
         public async Task<ResponseData<bool>> SyncAdminUserAsync(string apiUrl, string key = "")
         {
@@ -467,48 +385,7 @@ namespace GM.Store.Server.Database
             return model;
         }
 
-        public async Task<ResponseData<bool>> SyncChefListAsync(string apiUrl, string key = "")
-        {
-            if (string.IsNullOrEmpty(key))
-                key = apiUrl;
-
-            ResponseData<bool> respModel = new ResponseData<bool>();
-            respModel.Status = StatusCodes.Status500InternalServerError;
-            try
-            {
-                var model = await _httpClient.GetFromJsonAsync<ResponseData<List<Chef>>>(apiUrl);
-                if (model != null)
-                {
-
-                    using (var session = _store.Store.OpenAsyncSession())
-                    {
-                        var list = await session.LoadAsync<ResponseData<List<Chef>>>(key);
-                        session.Delete(list);
-                        await session.SaveChangesAsync();
-
-                        await session.StoreAsync(model, key);
-
-                        var syncItem = await session.Query<SyncModel>().Where(a => a.ItemId == 5).FirstOrDefaultAsync();
-                        if (syncItem != null)
-                        {
-                            syncItem.LastSyncTime = DateTime.Now;
-                        }
-                        await session.SaveChangesAsync();
-
-                    }
-                    respModel.Model = true;
-                    respModel.Status = StatusCodes.Status200OK;
-                }
-                return respModel;
-            }
-            catch (Exception ex)
-            {
-
-                _log.LogError(ex, ex.Message);
-            }
-            return respModel;
-
-        }
+      
         public void Dispose()
         {
             _session.Dispose();
@@ -555,6 +432,7 @@ namespace GM.Store.Server.Database
                             LocalId = userId,
                             PhoneNumber = req.PhoneNumber,
                             UserName = req.CustomerName == null ? req.PhoneNumber : req.CustomerName,
+                            CreatedOn = DateTime.UtcNow,
                             IsToSync = true
                         };
                         session.Store(userObj, $"{userId}");
@@ -593,8 +471,6 @@ namespace GM.Store.Server.Database
                         objReceipt.LastUpdatedOn = item.LastUpdatedOn;
                         objReceipt.IsToSync = item.IsToSync;
                     }
-
-
                     session.SaveChanges();
                 }
                 return true;
@@ -605,7 +481,7 @@ namespace GM.Store.Server.Database
             }
             return false;
         }
-        public bool ConfirmRecieptAsync(SmsRequestModel req)
+        public async Task<bool> ConfirmRecieptAsync(SmsRequestModel req)
         {
             try
             {
@@ -640,6 +516,11 @@ namespace GM.Store.Server.Database
                         session.SaveChanges();
                     }
                 }
+                //var response = await _httpClient.PostAsJsonAsync("api/sms/addlog", new SmsLog { CreatedDate=DateTime.UtcNow,PhoneNumber=req.PhoneNumber,Message=req.Message});
+                //var respModel = await response.Content.ReadFromJsonAsync<ResponseData<bool>>();
+                //if (respModel != null && respModel.Succeeded)
+                //{
+                //}
                 return true;
             }
             catch (Exception ex)
@@ -695,6 +576,49 @@ namespace GM.Store.Server.Database
             }
             return respModel;
         }
+
+        public async Task<ResponseListData<User>> GetAllUserAsync(UserRequestModel model)
+        {
+
+            ResponseListData<User>? respModel = new ResponseListData<User>();
+            respModel.Status = StatusCodes.Status500InternalServerError;
+            try
+            {
+                int totalCount = 0;
+                using (var session = _store.Store.OpenAsyncSession())
+                {
+                    var list = await session.Query<User>().ToListAsync();
+
+                    if (list.Count() == 0)
+                    {
+
+                        return respModel;
+                    }
+
+                    if (list != null)
+                    {
+                        if (!string.IsNullOrEmpty(model.Keyword))
+                        {
+                            model.Keyword = model.Keyword.ToLower();
+                            list = list.Where(x => (x.UserName != null && x.UserName.ToLower().Contains(model.Keyword)) || (x.PhoneNumber != null && x.PhoneNumber.ToLower().Contains(model.Keyword))).ToList();
+                        }
+                        totalCount = list.Count();
+                        list = list.OrderByDescending(a => a.CreatedOn).Skip(model.CurrentPage).Take(model.PageSize).ToList();
+                        respModel.Model.List = list;
+                        respModel.Model.Pager = new GMPager { TotalCount = totalCount, CurrentPage = model.CurrentPage, PageSize = model.PageSize };
+                        respModel.Status = StatusCodes.Status200OK;
+                    }
+                }
+
+                return respModel;
+            }
+            catch (Exception ex)
+            {
+                _log.LogError(ex, ex.Message);
+            }
+            return respModel;
+        }
+
         public async Task<ResponseListData<ConfirmedReciept>> GetRecieptLogAsync(ReceiptRequestModel model, string apiUrl, string key = "")
         {
 

@@ -44,7 +44,6 @@ namespace GM.Store.Shared.Models
         public int? CitymapiaVersion { get; set; }
         public List<PaymentGateWays> PaymentGateWays { get; set; }
         public List<BusinessAddressModel> Address { get; set; }
-        public PageModel CmsPage { get; set; }
     }
     public class PaymentGateWays
     {

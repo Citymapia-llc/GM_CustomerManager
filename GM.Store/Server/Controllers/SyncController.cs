@@ -46,20 +46,15 @@ namespace GM.Store.Server.Controllers
                 switch (typeId)
                 {
                     case 1:
-                        var response = await this._dataAccessManager.SyncCategoriesAsync("api/products/treecategories", "categories");
+                        var response = await this._dataAccessManager.SyncSmsTemplateAsync("api/sms/template", "Template");
                         return Ok(response);
+                    
                     case 2:
-                        var productResp = await this._dataAccessManager.SyncProductsAsync("api/products", "items");
-                        return Ok(productResp);
-                    case 3:
-                        var sectionResp = await this._dataAccessManager.SyncSectionAsync("api/table/GetSectionTables", "Sections");
-                        return Ok(sectionResp);
-                    case 4:
                         var adminUserResp = await this._dataAccessManager.SyncAdminUserAsync("/api/user/team", "teamusers");
                         return Ok(adminUserResp);
-                    case 5:
-                        var chefResp = await this._dataAccessManager.SyncChefListAsync("api/user/chef", "chef");
-                        return Ok(chefResp);
+                    //case 5:
+                    //    var chefResp = await this._dataAccessManager.SyncChefListAsync("api/user/chef", "chef");
+                    //    return Ok(chefResp);
                     default:
                         break;
                 }

@@ -33,6 +33,7 @@
 
   <ItemGroup>
     <Compile Remove="Pages\POS\OrderHistory.razor.cs" />
+    <Compile Remove="Pages\POS\Products.razor.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -44,6 +45,7 @@
     <Content Remove="Pages\POS\OrderPrint.razor" />
     <Content Remove="Pages\POS\OrderSummary.razor" />
     <Content Remove="Pages\POS\PosRestaurant.razor" />
+    <Content Remove="Pages\POS\Products.razor" />
     <Content Remove="wwwroot\localVehicleStore.js" />
   </ItemGroup>
 

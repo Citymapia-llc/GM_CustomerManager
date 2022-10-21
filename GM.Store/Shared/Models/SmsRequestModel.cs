@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,6 +21,7 @@ namespace GM.Store.Shared.Models
         public string? Brand { get; set; }
         public string? Model { get; set; }
         public string? Complaint { get; set; }
+        [Required]
         public string Message { get; set; }
     }
     public class SmsTemplateModel
