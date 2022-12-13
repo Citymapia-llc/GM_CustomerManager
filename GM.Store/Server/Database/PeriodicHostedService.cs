@@ -7,7 +7,7 @@ namespace GM.Store.Server.Database
     
     public class PeriodicHostedService : BackgroundService
     {
-        private readonly TimeSpan _period = TimeSpan.FromMinutes(5);
+        private readonly TimeSpan _period = TimeSpan.FromMinutes(2);
         private readonly ILogger<PeriodicHostedService> _logger;
         private readonly IServiceScopeFactory _factory;
         private readonly ServiceConfiguration _serviceConfig;
@@ -36,7 +36,7 @@ namespace GM.Store.Server.Database
                     
                     var lastSyncTime = await syncSerivce.GetLastSyncTimeAsync($"api/sync/lastupdated");
                     //  await sampleService.CartSyncAsync($"api/sync/{businessId}/cart", lastSyncTime.Model.LastUpdatedTime);
-                    //await syncSerivce.OrderSync($"api/sync/order", lastSyncTime.Model.LastUpdatedTime);
+                    await syncSerivce.CustomerSync($"api/sync/customers", lastSyncTime.Model.LastUpdatedTime);
                     //await syncSerivce.RemoveBusinessSettingAsync("settings");
                     //await syncSerivce.RemoveInactiveCartAsync();
                     _executionCount++;

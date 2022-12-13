@@ -32,6 +32,7 @@ namespace GM.Store.Server.Database
         Task<List<SmsTemplate>> GetSmsTemplateAsync(string apiUrl, string key = "");
         Task<bool> ConfirmRecieptAsync(SmsRequestModel req);
         Task<ResponseListData<User>> GetAllUserAsync(UserRequestModel model);
+        Task<bool> CustomerSync(string apiUrl, DateTime lastSyncTime);
     }
 
     /// <summary>
@@ -699,6 +700,58 @@ namespace GM.Store.Server.Database
                 _log.LogError(ex, ex.Message);
             }
             return respModel;
+        }
+
+        public async Task<bool> CustomerSync(string apiUrl, DateTime lastSyncTime)
+        {
+            try
+            {
+                using (var session = _store.Store.OpenAsyncSession())
+                {
+                    var syncData = await session.Query<User>().Where(a => a.IsToSync == true).ToListAsync();
+                    if (syncData.Count() > 0)
+                    {
+                        var s = syncData.ToList();
+                        var requestMessage = new HttpRequestMessage()
+                        {
+                            Method = new HttpMethod("POST"),
+                            RequestUri = new Uri($"{_serviceConfig.BaseApiUrl}{apiUrl}"),
+                            Content = new StringContent(JsonConvert.SerializeObject(s), Encoding.UTF8, "application/json")
+                        };
+                        requestMessage.Headers.Add("ApplicationSecret", _serviceConfig.ApplicationSecret);
+                        requestMessage.Content.Headers.TryAddWithoutValidation(
+                            "x-custom-header", "value");
+
+                        var response = await _httpClient.SendAsync(requestMessage);
+                        var responseStatusCode = response.StatusCode;
+                        var respModel = await response.Content.ReadFromJsonAsync<ResponseData<List<UserSyncResponseModel>>>();
+                        if (respModel != null && respModel.Succeeded)
+                        {
+                            foreach (var item in respModel.Model)
+                            {
+                                if (item.UserId != 0)
+                                {
+                                    var data = await session.Query<User>().Where(a => a.LocalId == item.LocalId).FirstOrDefaultAsync();
+                                    if (data != null)
+                                    {
+                                        data.UserId = item.UserId;
+                                        data.IsToSync = false;
+                                        await session.SaveChangesAsync();
+                                    }
+                                }
+                            }
+                        }
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _log.LogError(ex, ex.Message);
+            }
+            return false;
         }
     }
 }

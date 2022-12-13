@@ -79,7 +79,7 @@
     <None Include="wwwroot\js\countries.js" />
     <None Include="wwwroot\js\index.min.js" />
     <None Include="wwwroot\js\razorpay.js" />
-    <None Include="wwwroot\SampleExcel\ProductImportSample.xlsx" />
+    <None Include="wwwroot\SampleExcel\ReceiptImportSample.xlsx" />
   </ItemGroup>
 
   <ItemGroup>

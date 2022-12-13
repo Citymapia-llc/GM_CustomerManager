@@ -10,4 +10,11 @@
         public DateTime CreatedOn { get; set; }
         public bool IsToSync { get; set; }
     }
+    public class UserSyncResponseModel
+    {
+        public string? LocalId { get; set; }
+        public int UserId { get; set; }
+        public int LiveId { get; set; }
+
+    }
 }

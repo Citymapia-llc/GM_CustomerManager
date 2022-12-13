@@ -80,8 +80,7 @@ else
             }
             model = this.BusinessService.StoreDetails = response.Model;
             await this.localStorage.SetItemAsync("storeDetails", response.Model);
-            if (model.CitymapiaVersion == 5)
-                this.BusinessService.IsListEnabled = true;
+          
         }
         else if (response.Status == 503)
         {

@@ -67,7 +67,12 @@ namespace GM.Store.Client.Pages.POS
                 // exception.Redirect();
             }
         }
-
+        public async void SearchFilter(string keyword)
+        {
+            model.Keyword = keyword;
+            StateHasChanged();
+            await LoadData(new LoadDataArgs() { Skip = model.CurrentPage, Top = model.PageSize });
+        }
         async Task orderDetailsById(ReceiptModel model)
         {
             await sendSms.Show(model);
@@ -81,7 +86,7 @@ namespace GM.Store.Client.Pages.POS
                 this.StateHasChanged();
                 foreach (var file in selectedFiles)
                 {
-                    long maxFileSize = 1024 * 10000;
+                    long maxFileSize = 1024 * 100000;
                     Stream stream = file.OpenReadStream(maxFileSize);
                     MemoryStream ms = new MemoryStream();
                     await stream.CopyToAsync(ms);

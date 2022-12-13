@@ -38,8 +38,8 @@ namespace GM.Store.Server.Database
         {
             var serverOptions = new ServerOptions()
             {
-                DataDirectory = "C:\\ProgramData\\CitymapiaPOS",
-                ServerUrl = "http://127.0.0.1:60956/",
+                DataDirectory = $"{Directory.GetCurrentDirectory()}/CitymapiaPOS",
+                ServerUrl = "http://127.0.0.1:60959/",
             };
             EmbeddedServer.Instance.StartServer(serverOptions);
 
