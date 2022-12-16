@@ -48,13 +48,17 @@
                                         <div class="w-full mt-3 mb-2">
                                             <p class="text-primary-4 text-[14px] form-label text-primary-4">Message</p>
                                             <div class="w-full mt-3 mb-3">
-                                                <InputTextArea @bind-Value="requestModel.Message" class="p-2 font-medium border form-input w-full rounded-md" rows="4" maxlength="150" type="text" />
+                                                <InputTextArea @bind-Value="requestModel.Message" class="p-2 font-medium border form-input w-full rounded-md" rows="4" maxlength="450" type="text" />
                                                 <div class="error-validation">
                                                     <ValidationMessage For="() => requestModel.Message" />
                                                 </div>
                                             </div>
 
                                         </div>
+                                        @if (errorMessage != null)
+                                        {
+                                            <p class="error">@errorMessage</p>
+                                        }
                                     </div>
                                     <div class="modal-footer flex flex-shrink-0 flex-wrap items-center justify-end rounded-b-md">
                                         <button type="submit" class="btn-green">
@@ -94,7 +98,7 @@
     {
         requestModel.Message = Regex.Replace(value.Template, @"\<%.*%>", m => m.ToString().ToLower());
         requestModel.Message = requestModel.Message.Replace("{%RECEIPTNO%}", requestModel.RecieptNo);
-       // requestModel.Message = value.Template;
+        // requestModel.Message = value.Template;
         StateHasChanged();
     }
     private bool ShowConfirmation { get; set; }
@@ -104,14 +108,16 @@
     public ReceiptModel receipt { get; set; }
     public bool isloading { get; set; }
     public bool isSend { get; set; }
+    public string errorMessage { get; set; }
     [Parameter]
     public EventCallback<bool> OnSendSmsClose { get; set; }
     private string LocalOrderId { get; set; }
 
     public async Task Show(ReceiptModel request)
     {
-         isSend = false;
+        isSend = false;
         receipt = request;
+        errorMessage = "";
         requestModel = new SmsRequestModel
             {
                 Brand = request.Brand,
@@ -143,18 +149,29 @@
     public async Task SubmitAsync()
     {
         isloading = true;
-        var result = await this.SMSService.Send(this.requestModel);
-        if (result.Succeeded)
+        Regex regexObj = new Regex(@"\{%.*%}");
+        Match match = regexObj.Match(requestModel.Message);
+        if (match.Success)
         {
-            //ShowConfirmation = false;
-            //await OnSendSmsClose.InvokeAsync(true);
-            isSend = true;
+            errorMessage = "To send SMS, need to change the static template keys!";
             StateHasChanged();
-
         }
         else
         {
+            var result = await this.SMSService.Send(this.requestModel);
+            if (result.Succeeded)
+            {
+                //ShowConfirmation = false;
+               // await OnSendSmsClose.InvokeAsync(true);
+                isSend = true;
+                StateHasChanged();
 
+            }
+            else
+            {
+                errorMessage = result.Message;
+                StateHasChanged();
+            }
         }
         isloading = false;
     }

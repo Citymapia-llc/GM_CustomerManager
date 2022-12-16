@@ -8,7 +8,7 @@ namespace GM.Store.Client.Pages.POS
         protected BusinessModel businessModel = new BusinessModel();
         protected IList<ConfirmedReciept> receipts = new List<ConfirmedReciept>();
         protected ReceiptRequestModel model = new ReceiptRequestModel();
-        protected SendSms sendSms { get; set; }
+        protected ConfirmedReciept modalDetails { get; set; }
         protected bool showModal { get; set; }
         private int count { get; set; }
 
@@ -21,7 +21,7 @@ namespace GM.Store.Client.Pages.POS
             {
                 businessModel = this.BusinessService.StoreDetails;
                 model.CurrentPage = 0;
-                model.PageSize = 50;
+                model.PageSize = 10;
                 await LoadData(new LoadDataArgs() { Skip = model.CurrentPage, Top = model.PageSize });
 
             }
@@ -51,9 +51,11 @@ namespace GM.Store.Client.Pages.POS
             }
         }
 
-        async Task orderDetailsById(ReceiptModel model)
+        async Task orderDetailsById(ConfirmedReciept model)
         {
-            await sendSms.Show(model);
+            modalDetails = model;
+            showModal = true;
+            StateHasChanged();
         }
 
         
