@@ -98,6 +98,8 @@
     {
         requestModel.Message = Regex.Replace(value.Template, @"\<%.*%>", m => m.ToString().ToLower());
         requestModel.Message = requestModel.Message.Replace("{%RECEIPTNO%}", requestModel.RecieptNo);
+        requestModel.Message = requestModel.Message.Replace("{%RECEIPTDATE%}", requestModel.RecieptDate);
+        requestModel.Message = requestModel.Message.Replace("{%DATE%}", requestModel.RecieptDate);
         // requestModel.Message = value.Template;
         StateHasChanged();
     }

@@ -12,6 +12,7 @@ namespace GM.Store.Client.Pages.POS
         protected SendSms sendSms { get; set; }
         private bool isLoading;
         private int count { get; set; }
+        private string ErrorMessage { get; set; }
         private bool showModal { get; set; }
         protected ProductImportResponse productImportResponse = new ProductImportResponse();
 
@@ -20,7 +21,18 @@ namespace GM.Store.Client.Pages.POS
         IReadOnlyList<IBrowserFile> selectedFiles;
         private void OnInputFileChange(InputFileChangeEventArgs e)
         {
-            selectedFiles = e.GetMultipleFiles();
+            ErrorMessage = null;
+           
+            var fileExt = Path.GetExtension(e.File.Name).Substring(1);
+            if (!(fileExt == "xls" || fileExt == "xlsx"))
+            {
+                ErrorMessage = "File is not supported!";
+
+            }
+            else
+            {
+                selectedFiles = e.GetMultipleFiles();
+            }
             this.StateHasChanged();
         }
         protected override async Task OnInitializedAsync()
@@ -119,6 +131,9 @@ namespace GM.Store.Client.Pages.POS
         public void ModalOpen()
         {
             showModal = true;
+            uploadLoader = 0;
+            ErrorMessage = null;
+            productImportResponse = new ProductImportResponse();
             StateHasChanged();
         }
         public async Task CloseModal()

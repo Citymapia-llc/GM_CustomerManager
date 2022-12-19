@@ -8,6 +8,7 @@ using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
@@ -83,7 +84,8 @@ namespace GM.Store.ExcelFileV1
                                     if (reader.ElementType == typeof(Cell))
                                     {
                                         Cell c = (Cell)reader.LoadCurrentElement();
-
+                                        string cellReference = c.CellReference.Value;
+                                        int cellColumnIndex = (int)GetColumnIndexFromName(GetColumnName(cellReference));
                                         string cellValue;
 
                                         try
@@ -156,13 +158,19 @@ namespace GM.Store.ExcelFileV1
                                                         continue;
                                                     }
                                                     if (item.Value.Trim().ToLower() == cellValue.Trim().ToLower())
-                                                        mapper.HeaderRow.Add(columnIndex, item.Key);
+                                                        mapper.HeaderRow.Add(cellColumnIndex, item.Key);
                                                 }
                                             }
                                             else
                                             {
-                                                if (mapper.HeaderRow.Keys.Any(a => a == columnIndex))
-                                                    exRow.Add(mapper.HeaderRow[columnIndex], cellValue);
+                                                if (mapper.HeaderRow.Keys.Any(a => a == cellColumnIndex))
+                                                {
+                                                    exRow.Add(mapper.HeaderRow[cellColumnIndex], cellValue);
+                                                }
+                                                else
+                                                {
+                                                    exRow.Add(mapper.HeaderRow[cellColumnIndex], null);
+                                                }
                                             }
                                         }
                                         catch (Exception ex)
@@ -210,6 +218,27 @@ namespace GM.Store.ExcelFileV1
             }
             return exRowList;
             //Console.ReadKey();
+        }
+
+        public static string GetColumnName(string cellReference)
+        {
+            // Create a regular expression to match the column name portion of the cell name.
+            Regex regex = new Regex("[A-Za-z]+");
+            Match match = regex.Match(cellReference);
+            return match.Value;
+        }
+        public static int? GetColumnIndexFromName(string columnName)
+        {
+            //return columnIndex;
+            string name = columnName;
+            int number = 0;
+            int pow = 1;
+            for (int i = name.Length - 1; i >= 0; i--)
+            {
+                number += (name[i] - 'A' + 1) * pow;
+                pow *= 26;
+            }
+            return number;
         }
 
         private string GetDateTimeFormat(uint numberFormatId)
@@ -296,64 +325,6 @@ namespace GM.Store.ExcelFileV1
             }
             return index;
         }
-        List<Dictionary<string, string>> ParseExcelToListNew(string fileName, XmlParsingModel mapper, Func<List<Dictionary<string, string>>, Task<int>> onRowRead)
-        {
-            var batchSize = 2000;
-            var exRowList = new List<Dictionary<string, string>>();
-            using (SpreadsheetDocument spreadsheetDocument = SpreadsheetDocument.Open(fileName, false))
-            {
-                WorkbookPart workbookPart = spreadsheetDocument.WorkbookPart;
-                IEnumerable<Sheet> sheets = spreadsheetDocument.WorkbookPart.Workbook.GetFirstChild<Sheets>().Elements<Sheet>();
-                string relationshipId = sheets.First().Id.Value;
-                WorksheetPart worksheetPart = (WorksheetPart)spreadsheetDocument.WorkbookPart.GetPartById(relationshipId);
-                Worksheet workSheet = worksheetPart.Worksheet;
-                SheetData sheetData = workSheet.GetFirstChild<SheetData>();
-                IEnumerable<Row> rows = sheetData.Descendants<Row>();
-
-               
-
-                int count = 0;
-                foreach (Cell cell in rows.ElementAt(0))
-                {
-                    mapper.HeaderRow.Add(count, GetCellValue(spreadsheetDocument, cell));
-                    count++;
-                }
-                int rowIndex = 0;
-                foreach (Row row in rows)
-                {
-                    if (rowIndex != 0)
-                    {
-                        var exRow = new Dictionary<string, string>();
-                        int batchCount = 0;
-                        for (int i = 0; i < row.Descendants<Cell>().Count(); i++)
-                        {
-                            Cell cell = row.Descendants<Cell>().ElementAt(i);
-                            int actualCellIndex = CellReferenceToIndex(cell);
-                            exRow.Add(mapper.HeaderRow[actualCellIndex], GetCellValue(spreadsheetDocument, cell));
-                        }
-                        if (exRow.Count > 0)
-                            exRowList.Add(exRow);
-                        if (batchCount == batchSize)
-                        {
-                            onRowRead(exRowList);
-                            exRowList = new List<Dictionary<string, string>>();
-                            batchCount = 0;
-                        }
-                        batchCount++;
-                    }
-
-                    rowIndex++;
-                }
-
-                if (exRowList.Count > 0)
-                {
-                    onRowRead(exRowList);
-                    exRowList = null;
-                }
-
-            }
-            return exRowList;
-            //Console.ReadKey();
-        }
+       
     }
 }

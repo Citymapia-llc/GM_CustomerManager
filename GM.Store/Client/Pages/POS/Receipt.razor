@@ -5,7 +5,7 @@
 <div class="content-with-right-panel" style="right:0">
     <div class="flex items-center justify-between pos-top-search-area">
         <h2 class="mb-0 font-medium">Receipt</h2>
-         <div class="flex justify-center">
+        <div class="flex justify-center">
             <div class="xl:w-96">
                 <div class="input-group relative flex flex-wrap items-stretch w-full rounded">
                     <RadzenTextBox placeholder="Search" class="form-control" @bind-Value=@model.Keyword Change=@(args => SearchFilter(args)) />
@@ -47,8 +47,8 @@
                 <RadzenDataGridColumn TItem="ReceiptModel" Property="Model" Title="Model" />
                 <RadzenDataGridColumn TItem="ReceiptModel" Property="DeliveryDate" Title="Delivery Date" Sortable=false Filterable=false />
                 @* <RadzenDataGridColumn TItem="OrderHistoryResponse" Property="OrderStatus" Title="Order Status" Filterable=false>
-                    <Template Context="order"><RadzenBadge  BadgeStyle="BadgeStyle.Success" Text=@($"{order.OrderStatusName}") /></Template>
-                    </RadzenDataGridColumn>*@
+                <Template Context="order"><RadzenBadge  BadgeStyle="BadgeStyle.Success" Text=@($"{order.OrderStatusName}") /></Template>
+                </RadzenDataGridColumn>*@
                 <RadzenDataGridColumn Width="160px" TItem="ReceiptModel" Property="Id" Title="Actions" Sortable=false Filterable=false>
                     <Template Context="data"><RadzenButton ButtonStyle="ButtonStyle.Info" Icon="info" Class="m-1" Click=@(() => orderDetailsById(data)) Text="Send SMS" /></Template>
                 </RadzenDataGridColumn>
@@ -89,7 +89,7 @@
                             <EditForm Model="model" OnValidSubmit="OnSubmit">
                                 <div class="modal-body relative p-4">
                                     <div class="w-full mb-4">
-                                        <InputFile class="font-medium border-b form-input w-full" OnChange="OnInputFileChange" />
+                                        <InputFile class="font-medium border-b form-input w-full" accept=".xls,.xlsx" OnChange="OnInputFileChange" />
                                     </div>
                                     @if (uploadLoader == 1)
                                     {
@@ -99,9 +99,15 @@
                                     {
                                         <div class="alert alert-warning p-2"><strong>Loading!</strong> Upload on progress.</div>
                                     }
+                                    else if (ErrorMessage != null)
+                                    {
+                                        <div class="alert alert-danger p-2"> @ErrorMessage</div>
+                                    }
                                     <a href="SampleExcel/ReceiptImportSample.xlsx">Download Sample</a>
                                 </div>
                                 <div class="modal-footer flex flex-shrink-0 flex-wrap items-center justify-end p-4 border-t border-gray-200 rounded-b-md">
+                                    @if (ErrorMessage == null)
+                                    {
                                     <button type="submit" class="btn-green">
                                         Import
                                         @if (uploadLoader == 2)
@@ -111,6 +117,7 @@
                                             </div>
                                         }
                                     </button>
+                                    }
                                     <button type="button" @onclick="CloseModal" class="cancel-button ml-2">Cancel</button>
                                 </div>
                             </EditForm>

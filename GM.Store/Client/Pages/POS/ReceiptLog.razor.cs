@@ -11,10 +11,11 @@ namespace GM.Store.Client.Pages.POS
         protected ConfirmedReciept modalDetails { get; set; }
         protected bool showModal { get; set; }
         private int count { get; set; }
-
+        public double localMinutes { get; set; }
 
         protected override async Task OnInitializedAsync()
         {
+            localMinutes = BusinessService.UserTimeSpan.Value.TotalMinutes;
             var authstate = await AuthState.GetAuthenticationStateAsync();
             var user = authstate.User;
             if (user.Identity.Name != null)
@@ -29,6 +30,12 @@ namespace GM.Store.Client.Pages.POS
             {
                 this.NavigationManager.NavigateTo($"/pos/login");
             }
+        }
+        public async void SearchFilter(string keyword)
+        {
+            model.Keyword = keyword;
+            StateHasChanged();
+            await LoadData(new LoadDataArgs() { Skip = model.CurrentPage, Top = model.PageSize });
         }
         protected async Task LoadData(LoadDataArgs args)
         {
