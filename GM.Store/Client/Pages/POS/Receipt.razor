@@ -5,7 +5,20 @@
 <div class="content-with-right-panel" style="right:0">
     <div class="flex items-center justify-between pos-top-search-area">
         <h2 class="mb-0 font-medium">Receipt</h2>
-        <div class="flex justify-center">
+        <div class="flex justify-center align-items-center ml-auto">
+            <p class="mb-0">
+                Sms Balance @if (smsModel!=null && smsModel.BalanceAmount != 0)
+                {
+                    <b> : Rs.@smsModel.BalanceAmount</b>
+                }
+            </p> <a class="btn btn-third ml-2" href="javascript:void(0)" @onclick="CheckBalance">Check now @if (isSmsBalanceLoading)
+                                            {
+                                                <div class="spinner-border text-primary ml-1" role="status">
+                                                    <span class="visually-hidden">Loading...</span>
+                                                </div>
+                                            }</a>
+        </div>
+        <div class="flex justify-center ml-3">
             <div class="xl:w-96">
                 <div class="input-group relative flex flex-wrap items-stretch w-full rounded">
                     <RadzenTextBox placeholder="Search" class="form-control" @bind-Value=@model.Keyword Change=@(args => SearchFilter(args)) />
@@ -108,15 +121,15 @@
                                 <div class="modal-footer flex flex-shrink-0 flex-wrap items-center justify-end p-4 border-t border-gray-200 rounded-b-md">
                                     @if (ErrorMessage == null)
                                     {
-                                    <button type="submit" class="btn-green">
-                                        Import
-                                        @if (uploadLoader == 2)
-                                        {
-                                            <div class="spinner-border text-primary ml-1" role="status">
-                                                <span class="visually-hidden">Loading...</span>
-                                            </div>
-                                        }
-                                    </button>
+                                        <button type="submit" class="btn-green">
+                                            Import
+                                            @if (uploadLoader == 2)
+                                            {
+                                                <div class="spinner-border text-primary ml-1" role="status">
+                                                    <span class="visually-hidden">Loading...</span>
+                                                </div>
+                                            }
+                                        </button>
                                     }
                                     <button type="button" @onclick="CloseModal" class="cancel-button ml-2">Cancel</button>
                                 </div>

@@ -41,6 +41,11 @@ namespace GM.Store.Shared.Models
         public T Model { get; set; }
 
     }
+    public class ResponseSmsData<T> : ResponseData
+    {
+        public T data { get; set; }
+
+    }
 
     public class GMList<T>
     {

@@ -9,7 +9,9 @@ namespace GM.Store.Client.Pages.POS
         protected BusinessModel businessModel = new BusinessModel();
         protected IList<ReceiptModel> receipts = new List<ReceiptModel>();
         protected ReceiptRequestModel model = new ReceiptRequestModel();
+        protected SmsBalanceModel smsModel = new SmsBalanceModel();
         protected SendSms sendSms { get; set; }
+        private bool isSmsBalanceLoading;
         private bool isLoading;
         private int count { get; set; }
         private string ErrorMessage { get; set; }
@@ -147,6 +149,18 @@ namespace GM.Store.Client.Pages.POS
             await productGrid.Reload();
             StateHasChanged();
         }
+        public async Task CheckBalance()
+        {
+            isSmsBalanceLoading=true;
+            var balanceObj = await this.RecieptService.CheckSmsBalanace();
+            if (balanceObj != null && balanceObj.Succeeded)
+            {
+                smsModel = balanceObj.data;
+            }
+            isSmsBalanceLoading=false;
+            StateHasChanged();
+        }
+
     }
 
 }

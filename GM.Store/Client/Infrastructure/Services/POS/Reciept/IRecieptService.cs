@@ -9,5 +9,6 @@ namespace GM.Store.Client.Infrastructure.Services
         Task<ResponseListData<ReceiptModel>> GetAll(ReceiptRequestModel model);
         Task<ResponseListData<ConfirmedReciept>> GetLog(ReceiptRequestModel model);
         Task<ProductImportResponse> Import(UploadedFile model);
+        Task<ResponseSmsData<SmsBalanceModel>> CheckSmsBalanace();
     }
 }

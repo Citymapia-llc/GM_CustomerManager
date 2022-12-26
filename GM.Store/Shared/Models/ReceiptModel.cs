@@ -28,6 +28,11 @@ namespace GM.Store.Shared.Models
         public int PageSize { get; set; }
         public int CurrentPage { get; set; }
     }
+    public class SmsBalanceModel
+    {
+        public float BalanceAmount { get; set; }
+        public string? CurrenceCode { get; set; }
+    }
     public class ConfirmedReciept
     {
         public string? SLNO { get; set; }
